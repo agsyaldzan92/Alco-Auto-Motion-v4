@@ -21,7 +21,7 @@ import {
   ExportTier,
   RenderDurationMode,
   BackendMode,
-} from '../ExportModal';
+} from './types';
 import { AlcoEditingProject, RenderDiagnosticInfo, OutputQualityAuditResult } from '../../types';
 import { EnvironmentDiagnostics } from '../../engine/ffmpegWasmExportService';
 

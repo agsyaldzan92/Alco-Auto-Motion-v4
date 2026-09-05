@@ -52,6 +52,35 @@ import { RenderProgressStage } from './export/RenderProgressStage';
 import { QualityAuditStage } from './export/QualityAuditStage';
 import { FinalOutputStage } from './export/FinalOutputStage';
 import { AdvancedDiagnosticsAccordion } from './export/AdvancedDiagnosticsAccordion';
+import type {
+  ExportTier,
+  RenderDurationMode,
+  BackendMode,
+  HookReviewState,
+  CaptionReviewState,
+  SfxReviewState,
+  BrollReviewState,
+  TalkingHeadReviewState,
+  VideoFormatConfig,
+  ChecklistItem,
+  EndpointCheckDetail,
+  FinalExportReadinessResult,
+} from './export/types';
+
+export type {
+  ExportTier,
+  RenderDurationMode,
+  BackendMode,
+  HookReviewState,
+  CaptionReviewState,
+  SfxReviewState,
+  BrollReviewState,
+  TalkingHeadReviewState,
+  VideoFormatConfig,
+  ChecklistItem,
+  EndpointCheckDetail,
+  FinalExportReadinessResult,
+};
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -61,12 +90,6 @@ interface ExportModalProps {
   videoFile?: File | null;
   onUpdateProject?: (updatedProject: AlcoEditingProject) => void;
 }
-
-export type HookReviewState = 'bagus' | 'terlalu_kecil' | 'menutup_wajah' | 'terlalu_panjang';
-export type CaptionReviewState = 'clean' | 'terlalu_panjang' | 'terlalu_rendah' | 'terlalu_besar' | 'masih_box';
-export type SfxReviewState = 'sesuai' | 'terlalu_ramai' | 'terlalu_pelan' | 'terlalu_keras' | 'tidak_cocok_scene';
-export type BrollReviewState = 'relevan' | 'generik' | 'kaku' | 'menutup_wajah';
-export type TalkingHeadReviewState = 'aman' | 'terlalu_kecil' | 'wajah_tertutup' | 'crop_kurang_bagus';
 
 function computeInitialReviewStates(proj: AlcoEditingProject, diagInfo?: RenderDiagnosticInfo | null) {
   const scenes = proj.scenes || [];
@@ -139,53 +162,12 @@ function computeInitialReviewStates(proj: AlcoEditingProject, diagInfo?: RenderD
   return { hook, caption, sfx, broll, th };
 }
 
-export type ExportTier = 'server_mp4' | 'safe_20fps' | 'standard_24fps' | 'mp4_wasm';
-export type RenderDurationMode = 'full_duration' | 'test_15s';
-export type BackendMode = 'checking' | 'available' | 'missing' | 'ffmpeg_missing' | 'unknown';
-
 export const API_BASE_URL = (((import.meta as any).env?.VITE_RENDER_API_BASE_URL as string) || '').replace(/\/$/, '');
 
 export const getApiUrl = (path: string): string => {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   return API_BASE_URL ? `${API_BASE_URL}${cleanPath}` : cleanPath;
 };
-
-export interface VideoFormatConfig {
-  mimeType: string;
-  extension: 'mp4' | 'webm';
-  formatLabel: string;
-  isUniversalMp4: boolean;
-  videoBitsPerSecond: number;
-  audioBitsPerSecond: number;
-  hasAudioTrack?: boolean;
-}
-
-export interface EndpointCheckDetail {
-  endpoint: string;
-  url: string;
-  httpStatus?: number;
-  contentType?: string;
-  isHtml: boolean;
-  jsonValid: boolean;
-  success: boolean;
-  data?: any;
-  error?: string;
-}
-
-export interface FinalExportReadinessResult {
-  passed: boolean;
-  status: 'PASS' | 'FAILED';
-  mainMessage: string;
-  failureReasons: string[];
-  playbackQualityPass: boolean;
-  sourceMatchedPass: boolean;
-  audioMatchedPass: boolean;
-  motionPass: boolean;
-  sfxPass: boolean;
-  captionsPass: boolean;
-  talkingHeadPass: boolean;
-  parityPass: boolean;
-}
 
 export function evaluateFinalExportReadiness(
   auditResult: OutputQualityAuditResult | null,
@@ -3153,6 +3135,68 @@ echo "Render Selesai: output_alco_24fps.mp4"
             renderStatusText={renderStatusText}
             onCancelRender={handleCancelRender}
           />
+        )}
+
+        {/* Render Error Banner */}
+        {renderError && !isRendering && (
+          <div className="bg-rose-500/10 border border-rose-500/30 p-4 rounded-xl space-y-2">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+              <div className="space-y-1 w-full">
+                <div className="flex items-center gap-2 flex-wrap justify-between">
+                  <h4 className="text-xs font-bold text-rose-300 flex items-center gap-2">
+                    <span>Render Gagal</span>
+                    {diagnosticInfo?.failedStage && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        {diagnosticInfo.failedStage}
+                      </span>
+                    )}
+                  </h4>
+                </div>
+                <p className="text-xs text-rose-200 font-medium leading-relaxed">{renderError}</p>
+                {diagnosticInfo?.technicalDetail && (
+                  <p className="text-[11px] font-mono text-slate-300 bg-black/40 p-2 rounded border border-slate-700 leading-snug break-all">
+                    {diagnosticInfo.technicalDetail}
+                  </p>
+                )}
+                {diagnosticInfo?.recommendedFix && (
+                  <p className="text-xs text-amber-300 font-semibold flex items-center gap-1.5 pt-0.5">
+                    <span>💡 Rekomendasi:</span>
+                    <span>{diagnosticInfo.recommendedFix}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+            {/* Quick Actions on Error: Retry Safe Mode / Retry Server MP4 */}
+            <div className="flex items-center gap-2 pt-1 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setRenderError(null);
+                  setSelectedTier('safe_20fps');
+                  handleStartWebmRender('safe_20fps');
+                }}
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Retry Safe Mode (20 FPS WebM)</span>
+              </button>
+              {backendMode === 'available' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRenderError(null);
+                    setSelectedTier('server_mp4');
+                    handleStartServerMp4Render();
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                >
+                  <Server className="w-3.5 h-3.5" />
+                  <span>Retry Server MP4</span>
+                </button>
+              )}
+            </div>
+          </div>
         )}
 
 

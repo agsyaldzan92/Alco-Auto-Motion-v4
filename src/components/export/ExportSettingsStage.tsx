@@ -11,14 +11,8 @@ import {
   Zap,
   ExternalLink,
 } from 'lucide-react';
-import { ExportTier, RenderDurationMode, BackendMode } from '../ExportModal';
+import { ExportTier, RenderDurationMode, BackendMode, ChecklistItem } from './types';
 import { EnvironmentDiagnostics } from '../../engine/ffmpegWasmExportService';
-
-interface ChecklistItem {
-  label: string;
-  status: 'PASS' | 'WARNING' | 'FAIL' | 'BELUM DICEK';
-  detail: string;
-}
 
 interface ExportSettingsStageProps {
   selectedTier: ExportTier;

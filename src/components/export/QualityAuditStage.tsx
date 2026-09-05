@@ -10,7 +10,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { OutputQualityAuditResult, RenderDiagnosticInfo } from '../../types';
-import { RenderDurationMode } from '../ExportModal';
+import { RenderDurationMode } from './types';
 
 interface QualityAuditStageProps {
   auditResult: OutputQualityAuditResult;

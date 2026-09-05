@@ -1,6 +1,6 @@
 import React from 'react';
 import { Loader2, Film, Sparkles, CheckCircle2 } from 'lucide-react';
-import { ExportTier } from '../ExportModal';
+import { ExportTier } from './types';
 
 interface RenderProgressStageProps {
   selectedTier: ExportTier;

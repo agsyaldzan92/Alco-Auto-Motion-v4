@@ -11,7 +11,7 @@ import {
   FileText,
   FileJson,
 } from 'lucide-react';
-import { ExportTier, BackendMode, VideoFormatConfig } from '../ExportModal';
+import { ExportTier, BackendMode, VideoFormatConfig } from './types';
 
 interface FinalOutputStageProps {
   renderedBlobUrl: string | null;
