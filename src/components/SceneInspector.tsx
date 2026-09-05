@@ -3,16 +3,12 @@ import {
   SceneEditPlan,
   MotionPreset,
   CaptionPreset,
-  CaptionDisplayMode,
   CaptionMode,
   ContentRole,
   SoundEffectType,
-  SFXPurpose,
-  VisualIntent,
   BrollType,
   BrollFormat,
 } from '../types';
-import { EXTENDED_STOCK_CATALOG } from '../engine/stockCatalog';
 import { SFX_TO_PURPOSE_FALLBACK } from '../engine/decisionEngine';
 import { playSoundEffect } from '../utils/audioEffects';
 import { generateWordTimings, formatCaptionByMode } from '../engine/captionEngine';
@@ -24,14 +20,8 @@ import {
   Type,
   Move,
   Trash2,
-  Flame,
-  ShieldAlert,
-  Sliders,
   Play,
-  Layers,
-  Zap,
   UserCheck,
-  Eye,
   ShieldCheck,
   Sun,
   Layout,
@@ -40,8 +30,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  SlidersHorizontal,
-  VolumeX,
 } from 'lucide-react';
 
 interface SceneInspectorProps {
@@ -68,12 +56,12 @@ const CAPTION_OPTIONS: { id: CaptionPreset; label: string; desc: string }[] = [
 ];
 
 const ROLE_OPTIONS: { id: ContentRole; label: string; color: string }[] = [
-  { id: 'hook', label: 'Hook (0-3s)', color: 'bg-rose-50 text-rose-700 border-rose-200' },
-  { id: 'problem', label: 'Problem', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  { id: 'curiosity', label: 'Curiosity', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-  { id: 'solution', label: 'Solution', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  { id: 'proof', label: 'Proof / Data', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-  { id: 'cta', label: 'CTA / Penutup', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  { id: 'hook', label: 'Hook (0-3s)', color: 'bg-rose-500/10 text-rose-500 border-rose-500/30' },
+  { id: 'problem', label: 'Problem', color: 'bg-amber-500/10 text-amber-500 border-amber-500/30' },
+  { id: 'curiosity', label: 'Curiosity', color: 'bg-purple-500/10 text-purple-500 border-purple-500/30' },
+  { id: 'solution', label: 'Solution', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' },
+  { id: 'proof', label: 'Proof / Data', color: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/30' },
+  { id: 'cta', label: 'CTA / Penutup', color: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/30' },
 ];
 
 const BROLL_TYPES: { id: BrollType; label: string; desc: string }[] = [
@@ -171,10 +159,10 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
 
   if (!scene) {
     return (
-      <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 shadow-xs">
-        <Sparkles className="w-8 h-8 text-slate-300 mx-auto mb-2 animate-pulse" />
-        <p className="text-sm font-semibold text-slate-700">Pilih salah satu scene di timeline</p>
-        <p className="text-xs text-slate-400 mt-1">Anda dapat menyetel teks subtitle, efek visual, dan sound effect per-scene.</p>
+      <div className="alco-card p-8 text-center text-[var(--muted-foreground)]">
+        <Sparkles className="w-8 h-8 mx-auto mb-2 text-blue-500 animate-pulse" />
+        <p className="text-sm font-semibold text-[var(--fg-app)]">Pilih salah satu scene di timeline</p>
+        <p className="text-xs text-[var(--muted-foreground)] mt-1">Anda dapat menyetel teks subtitle, efek visual, dan sound effect per-scene.</p>
       </div>
     );
   }
@@ -333,32 +321,32 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
   const faceSafeText = (isFaceOverlap || (framing?.is_talking_head && captionStatusText === 'heavy box')) ? 'risk' : 'safe';
 
   return (
-    <div className="bg-white border border-slate-200 rounded-3xl shadow-xs overflow-hidden flex flex-col transition-all">
+    <div className="alco-card p-0 overflow-hidden flex flex-col transition-all">
       {/* Top Header with Scene Title, Timing & Manual Edit Badge */}
-      <div className="p-4 sm:p-5 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800">
+      <div className="p-3.5 sm:p-4 bg-[var(--secondary)] border-b border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="w-7 h-7 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
               #{sceneIndex + 1}
             </span>
-            <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
-              Scene {sceneIndex + 1} Editor
+            <h3 className="text-sm font-bold text-[var(--fg-app)] tracking-tight">
+              Scene {sceneIndex + 1} Inspector
             </h3>
 
             {/* Manual Edit Indicator */}
             {scene.is_manually_edited ? (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1">
-                <FileEdit className="w-3 h-3 text-amber-400" /> Diedit Manual
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center gap-1">
+                <FileEdit className="w-3 h-3" /> Diedit Manual
               </span>
             ) : (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-emerald-400" /> Rekomendasi AI Aktif
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> AI Optimized
               </span>
             )}
           </div>
 
-          <p className="text-xs font-mono text-indigo-300 mt-1">
-            Waktu: {scene.start.toFixed(1)}s – {scene.end.toFixed(1)}s (Durasi: {(scene.end - scene.start).toFixed(1)}s)
+          <p className="text-[11px] font-mono text-[var(--muted-foreground)] mt-1">
+            Timecode: {scene.start.toFixed(1)}s – {scene.end.toFixed(1)}s ({(scene.end - scene.start).toFixed(1)}s)
           </p>
         </div>
 
@@ -367,28 +355,28 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
           <button
             type="button"
             onClick={handleResetToAiDefaults}
-            className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
+            className="alco-btn alco-btn-secondary text-xs h-8 px-2.5 py-1"
             title="Kembalikan semua pengaturan scene ini ke keputusan awal AI"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-            <span>Reset ke AI</span>
+            <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
+            <span>Reset AI</span>
           </button>
         )}
       </div>
 
       {/* AI Decision Explanation Box (Why AI made this edit) */}
-      <div className="bg-indigo-50/70 border-b border-indigo-100 p-4 sm:p-5 flex items-start gap-3 text-xs">
-        <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-          <Sparkles className="w-4 h-4" />
+      <div className="bg-[var(--secondary)]/40 border-b border-[var(--border)] p-3 sm:p-3.5 flex items-start gap-2.5 text-xs">
+        <div className="w-6 h-6 rounded bg-blue-600/10 text-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+          <Sparkles className="w-3.5 h-3.5" />
         </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="font-bold text-slate-900">Mengapa AI memilih edit ini?</span>
-            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${activeRoleObj.color}`}>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+            <span className="font-bold text-[var(--fg-app)]">AI Director Reasoning:</span>
+            <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${activeRoleObj.color}`}>
               {activeRoleObj.label}
             </span>
           </div>
-          <p className="text-slate-700 leading-relaxed">
+          <p className="text-[var(--muted-foreground)] leading-relaxed text-[11px]">
             {scene.director_note ||
               (scene.role === 'hook'
                 ? 'Bagian hook 0–3 detik dirancang dengan zoom tegas & teks tebal untuk mencegah penonton men-scroll.'
@@ -398,115 +386,114 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
       </div>
 
       {/* Real-time Scene Design & Safe Zone Audit Bar */}
-      <div className="bg-slate-900 text-white p-3 sm:p-3.5 px-4 sm:px-5 border-b border-slate-800 flex items-center justify-between gap-3 flex-wrap shadow-xs text-xs">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span className="font-extrabold tracking-wide uppercase text-slate-200">
-            Audit Visual Scene #{sceneIndex + 1}:
+      <div className="p-2.5 px-3.5 bg-[var(--secondary)]/60 border-b border-[var(--border)] flex items-center justify-between gap-2 flex-wrap text-xs">
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+            Audit Visual Scene:
           </span>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {/* Hook Status */}
-          <div className="flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-1 rounded-lg border border-slate-700">
-            <span className="text-slate-400 font-semibold">Hook:</span>
+          <div className="flex items-center gap-1 bg-[var(--card)] px-2 py-0.5 rounded border border-[var(--border)] text-[10px]">
+            <span className="text-[var(--muted-foreground)]">Hook:</span>
             <span className={`font-bold ${
-              hookStatusText === 'visible' ? 'text-emerald-400' :
-              hookStatusText === 'too small' ? 'text-amber-400' :
-              hookStatusText === 'too close to face' ? 'text-rose-400' : 'text-slate-400'
+              hookStatusText === 'visible' ? 'text-emerald-500' :
+              hookStatusText === 'too small' ? 'text-amber-500' :
+              hookStatusText === 'too close to face' ? 'text-rose-500' : 'text-[var(--muted-foreground)]'
             }`}>
               {hookStatusText === 'N/A' ? 'Standard' : hookStatusText}
             </span>
           </div>
 
           {/* Caption Status */}
-          <div className="flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-1 rounded-lg border border-slate-700">
-            <span className="text-slate-400 font-semibold">Caption:</span>
+          <div className="flex items-center gap-1 bg-[var(--card)] px-2 py-0.5 rounded border border-[var(--border)] text-[10px]">
+            <span className="text-[var(--muted-foreground)]">Caption:</span>
             <span className={`font-bold ${
-              captionStatusText === 'clean floating' ? 'text-emerald-400' :
-              captionStatusText === 'too long' ? 'text-amber-400' : 'text-rose-400'
+              captionStatusText === 'clean floating' ? 'text-emerald-500' :
+              captionStatusText === 'too long' ? 'text-amber-500' : 'text-rose-500'
             }`}>
               {captionStatusText}
             </span>
           </div>
 
           {/* Face Safe Status */}
-          <div className="flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-1 rounded-lg border border-slate-700">
-            <span className="text-slate-400 font-semibold">Wajah:</span>
+          <div className="flex items-center gap-1 bg-[var(--card)] px-2 py-0.5 rounded border border-[var(--border)] text-[10px]">
+            <span className="text-[var(--muted-foreground)]">Face Safe:</span>
             <span className={`font-bold ${
-              faceSafeText === 'safe' ? 'text-emerald-400' : 'text-rose-400'
+              faceSafeText === 'safe' ? 'text-emerald-500' : 'text-rose-500'
             }`}>
-              {faceSafeText === 'safe' ? 'Safe Zone' : 'Risk Collision'}
+              {faceSafeText === 'safe' ? 'Safe' : 'Risk'}
             </span>
           </div>
         </div>
       </div>
 
       {/* 3 Tab Navigation: [Teks] [Visual] [Audio] */}
-      <div className="flex items-center border-b border-slate-200 bg-slate-50/80 px-4 sm:px-6 pt-3 gap-2">
+      <div className="flex items-center border-b border-[var(--border)] bg-[var(--secondary)]/30 px-3 pt-2 gap-1.5">
         <button
           type="button"
           onClick={() => setActiveSubTab('text')}
-          className={`flex-1 min-h-[44px] py-2.5 px-3 font-bold text-xs sm:text-sm rounded-t-xl border-t border-x transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-h-[38px] py-2 px-2.5 font-bold text-xs rounded-t-lg border-t border-x transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             activeSubTab === 'text'
-              ? 'bg-white border-slate-200 text-indigo-700 shadow-2xs font-extrabold border-b-2 border-b-white'
-              : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
+              ? 'bg-[var(--card)] border-[var(--border)] text-blue-500 font-bold -mb-px'
+              : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--fg-app)]'
           }`}
         >
-          <Type className="w-4 h-4" />
-          <span>Teks & Subtitle</span>
+          <Type className="w-3.5 h-3.5" />
+          <span>Caption</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSubTab('visual')}
-          className={`flex-1 min-h-[44px] py-2.5 px-3 font-bold text-xs sm:text-sm rounded-t-xl border-t border-x transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-h-[38px] py-2 px-2.5 font-bold text-xs rounded-t-lg border-t border-x transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             activeSubTab === 'visual'
-              ? 'bg-white border-slate-200 text-indigo-700 shadow-2xs font-extrabold border-b-2 border-b-white'
-              : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
+              ? 'bg-[var(--card)] border-[var(--border)] text-blue-500 font-bold -mb-px'
+              : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--fg-app)]'
           }`}
         >
-          <Layout className="w-4 h-4" />
-          <span>Visual & B-Roll</span>
+          <Layout className="w-3.5 h-3.5" />
+          <span>Visual & Motion</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSubTab('audio')}
-          className={`flex-1 min-h-[44px] py-2.5 px-3 font-bold text-xs sm:text-sm rounded-t-xl border-t border-x transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-h-[38px] py-2 px-2.5 font-bold text-xs rounded-t-lg border-t border-x transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             activeSubTab === 'audio'
-              ? 'bg-white border-slate-200 text-indigo-700 shadow-2xs font-extrabold border-b-2 border-b-white'
-              : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
+              ? 'bg-[var(--card)] border-[var(--border)] text-blue-500 font-bold -mb-px'
+              : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--fg-app)]'
           }`}
         >
-          <Volume2 className="w-4 h-4" />
+          <Volume2 className="w-3.5 h-3.5" />
           <span>Audio & SFX</span>
         </button>
       </div>
 
       {/* Tab Contents */}
-      <div className="p-5 sm:p-6 space-y-6 flex-1">
+      <div className="p-3.5 sm:p-4 space-y-4 flex-1">
         {/* ============================================================ */}
         {/* TAB 1: TEKS & SUBTITLE */}
         {/* ============================================================ */}
         {activeSubTab === 'text' && (
-          <div className="space-y-5 animate-fade-in">
+          <div className="space-y-3.5 animate-fade-in">
             {/* Role Narasi */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-indigo-600" />
-                Peran Narasi Scene:
+              <label className="alco-section-label">
+                Scene Narrative Role:
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                 {ROLE_OPTIONS.map((role) => (
                   <button
                     key={role.id}
                     type="button"
                     onClick={() => handleRoleChange(role.id)}
-                    className={`min-h-[40px] py-2 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                    className={`min-h-[36px] py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
                       scene.role === role.id
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-[var(--secondary)] border border-[var(--border)] text-[var(--fg-app)] hover:border-[var(--muted-foreground)]'
                     }`}
                   >
                     {role.label}
@@ -516,25 +503,25 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
             </div>
 
             {/* Subtitle Text Input */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Type className="w-3.5 h-3.5 text-indigo-600" /> Teks Subtitle di Layar:
+                <label className="alco-section-label flex items-center gap-1">
+                  <Type className="w-3 h-3 text-blue-500" /> Caption Subtitle:
                 </label>
                 {/* Caption Modes (Verbatim / Punchy / Summary) */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs">
+                <div className="flex items-center gap-1 bg-[var(--secondary)] p-0.5 rounded-lg text-[11px]">
                   {(['verbatim', 'punchy', 'summary'] as CaptionMode[]).map((mode) => (
                     <button
                       key={mode}
                       type="button"
                       onClick={() => handleCaptionModeChange(mode)}
-                      className={`min-h-[32px] px-2.5 py-1 rounded-lg font-bold capitalize cursor-pointer transition-colors ${
+                      className={`min-h-[28px] px-2 py-0.5 rounded font-bold capitalize cursor-pointer transition-colors ${
                         scene.caption_mode === mode
-                          ? 'bg-white text-indigo-700 shadow-2xs font-extrabold'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-[var(--card)] text-blue-500 shadow-2xs font-bold'
+                          : 'text-[var(--muted-foreground)] hover:text-[var(--fg-app)]'
                       }`}
                     >
-                      {mode === 'verbatim' ? 'Lengkap' : mode === 'punchy' ? 'Ringkas' : 'Rangkuman'}
+                      {mode === 'verbatim' ? 'Full' : mode === 'punchy' ? 'Punchy' : 'Summary'}
                     </button>
                   ))}
                 </div>
@@ -545,29 +532,29 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
                 value={scene.caption}
                 onChange={(e) => handleCaptionTextChange(e.target.value)}
                 placeholder="Teks subtitle yang muncul di video..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 uppercase leading-relaxed"
+                className="alco-input w-full p-2.5 text-xs font-bold uppercase leading-relaxed resize-none"
               />
             </div>
 
             {/* Subtitle Preset Styles */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Gaya Tampilan Subtitle:
+            <div className="space-y-1.5">
+              <label className="alco-section-label">
+                Caption Preset Style:
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                 {CAPTION_OPTIONS.map((cOpt) => (
                   <button
                     key={cOpt.id}
                     type="button"
                     onClick={() => handleCaptionStyleChange(cOpt.id)}
-                    className={`min-h-[44px] p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`min-h-[40px] p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                       scene.caption_style === cOpt.id
-                        ? 'bg-amber-50 text-amber-900 border-amber-400 shadow-xs ring-1 ring-amber-400/40'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                        ? 'bg-amber-500/10 text-[var(--fg-app)] border-amber-500/40 ring-1 ring-amber-500/30'
+                        : 'bg-[var(--secondary)] border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--muted-foreground)]'
                     }`}
                   >
-                    <div className="text-xs font-bold text-slate-900">{cOpt.label}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{cOpt.desc}</div>
+                    <div className="text-xs font-bold text-[var(--fg-app)]">{cOpt.label}</div>
+                    <div className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{cOpt.desc}</div>
                   </button>
                 ))}
               </div>
@@ -575,65 +562,64 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
 
             {/* Highlighted Words input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
-                <span>Kata Kunci Penekanan (Warna Kontras):</span>
-                <span className="text-[11px] font-normal text-slate-500 font-sans">Pisahkan dengan koma</span>
+              <label className="alco-section-label flex items-center justify-between">
+                <span>Keyword Highlight Words:</span>
+                <span className="text-[10px] font-normal text-[var(--muted-foreground)] lowercase font-sans">pisahkan dengan koma</span>
               </label>
               <input
                 type="text"
                 value={(scene.highlight_words || []).join(', ')}
                 onChange={(e) => handleHighlightWordsChange(e.target.value)}
-                placeholder="CONTOH: PENTING, OMZET, CEPAT"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-amber-700 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 uppercase"
+                placeholder="CONTOH: PENTING, OMSET, CEPAT"
+                className="alco-input w-full px-3 py-2 text-xs font-bold uppercase"
               />
             </div>
           </div>
         )}
 
         {/* ============================================================ */}
-        {/* TAB 2: VISUAL & B-ROLL */}
+        {/* TAB 2: VISUAL & MOTION */}
         {/* ============================================================ */}
         {activeSubTab === 'visual' && (
-          <div className="space-y-5 animate-fade-in">
+          <div className="space-y-3.5 animate-fade-in">
             {/* 6 Motion Presets Selection */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Move className="w-3.5 h-3.5 text-indigo-600" />
-                  Gerakan Kamera Dinamis (Camera Motion):
+                <label className="alco-section-label flex items-center gap-1">
+                  <Move className="w-3 h-3 text-blue-500" /> Camera Motion:
                 </label>
-                <span className="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-                  Skala: {scene.motion_scale?.toFixed(2) || '1.15'}x
+                <span className="text-[10px] font-mono font-bold text-blue-500 bg-blue-500/10 px-1.5 py-0.2 rounded">
+                  Scale: {scene.motion_scale?.toFixed(2) || '1.15'}x
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {MOTION_OPTIONS.map((opt) => (
                   <button
                     key={opt.id}
                     type="button"
                     onClick={() => handleMotionChange(opt.id)}
-                    className={`min-h-[44px] p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`min-h-[40px] p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                       scene.motion === opt.id
-                        ? 'border-indigo-500 bg-indigo-50/70 text-slate-900 shadow-xs ring-2 ring-indigo-500'
-                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
+                        ? 'border-blue-500 bg-blue-500/10 text-[var(--fg-app)] ring-1 ring-blue-500'
+                        : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted-foreground)] hover:border-[var(--muted-foreground)]'
                     }`}
                   >
-                    <div className="text-xs font-bold text-slate-900">{opt.label}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{opt.desc}</div>
+                    <div className="text-xs font-bold text-[var(--fg-app)]">{opt.label}</div>
+                    <div className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{opt.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* B-Roll Format & Type */}
-            <div className="space-y-3 pt-3 border-t border-slate-100">
+            <div className="space-y-2 pt-2 border-t border-[var(--border)]">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Layout className="w-3.5 h-3.5 text-indigo-600" /> Format & Lapisan Visual B-Roll:
+                <label className="alco-section-label flex items-center gap-1">
+                  <Layout className="w-3 h-3 text-blue-500" /> B-Roll Visual Format:
                 </label>
                 {scene.brollFormat && scene.brollFormat !== 'none' && (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                  <span className="px-2 py-0.2 rounded text-[9px] font-bold bg-purple-500/10 text-purple-500 border border-purple-500/30">
                     Aktif
                   </span>
                 )}
@@ -641,15 +627,15 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
 
               {/* brollFormat */}
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-slate-700">Format Tampilan Visual:</span>
+                <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">Format Tampilan Visual:</span>
                 <select
                   value={scene.brollFormat || 'none'}
                   onChange={(e) => updateSceneWithEditFlag({ brollFormat: e.target.value as BrollFormat })}
-                  className="w-full min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="alco-input w-full text-xs font-semibold"
                 >
                   {BROLL_FORMATS.map((bf) => (
-                    <option key={bf.id} value={bf.id}>
-                      {bf.label} — {bf.desc}
+                    <option key={bf.id} value={bf.id} className="bg-[var(--card)] text-[var(--fg-app)]">
+                      {bf.label}
                     </option>
                   ))}
                 </select>
@@ -657,51 +643,51 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
 
               {/* brollType (Tujuan Narasi) */}
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-slate-700">Tujuan Visual Narasi (Tipe B-Roll):</span>
+                <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">Tujuan Visual Narasi:</span>
                 <select
                   value={scene.brollType || 'literal'}
                   onChange={(e) => updateSceneWithEditFlag({ brollType: e.target.value as BrollType })}
-                  className="w-full min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="alco-input w-full text-xs font-semibold"
                 >
                   {BROLL_TYPES.map((bt) => (
-                    <option key={bt.id} value={bt.id}>
-                      {bt.label} — {bt.desc}
+                    <option key={bt.id} value={bt.id} className="bg-[var(--card)] text-[var(--fg-app)]">
+                      {bt.label}
                     </option>
                   ))}
                 </select>
               </div>
 
               {scene.broll && (
-                <div className="bg-purple-50/80 border border-purple-200 p-3 rounded-xl flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-xs text-purple-900 font-semibold truncate">
-                    <Video className="w-4 h-4 text-purple-600 shrink-0" />
+                <div className="bg-purple-500/10 border border-purple-500/20 p-2.5 rounded-lg flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-xs text-purple-500 font-semibold truncate">
+                    <Video className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">{scene.broll.title || scene.broll.query}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => updateSceneWithEditFlag({ broll: null, visual_intent: 'none', brollFormat: 'none' })}
-                    className="min-h-[36px] px-3 py-1 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+                    className="alco-btn alco-btn-secondary text-xs h-7 px-2 text-rose-500 hover:bg-rose-500/10"
                   >
-                    <Trash2 className="w-3.5 h-3.5" /> Hapus B-Roll
+                    <Trash2 className="w-3 h-3" /> Hapus
                   </button>
                 </div>
               )}
             </div>
 
             {/* Transition Selection */}
-            <div className="space-y-1 pt-2 border-t border-slate-100">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Transisi ke Scene Berikutnya:
+            <div className="space-y-1 pt-2 border-t border-[var(--border)]">
+              <label className="alco-section-label">
+                Scene Transition:
               </label>
               <select
                 value={scene.transition}
                 onChange={(e) => updateSceneWithEditFlag({ transition: e.target.value as any })}
-                className="w-full min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="alco-input w-full text-xs font-semibold"
               >
-                <option value="cut">Hard Cut (Paling Rapi & Standar)</option>
-                <option value="flash">Impact White Flash</option>
-                <option value="whip_pan">Whip Pan (Geser Cepat)</option>
-                <option value="zoom_cut">Zoom In Cut</option>
+                <option value="cut" className="bg-[var(--card)] text-[var(--fg-app)]">Hard Cut (Standard)</option>
+                <option value="flash" className="bg-[var(--card)] text-[var(--fg-app)]">Impact White Flash</option>
+                <option value="whip_pan" className="bg-[var(--card)] text-[var(--fg-app)]">Whip Pan</option>
+                <option value="zoom_cut" className="bg-[var(--card)] text-[var(--fg-app)]">Zoom In Cut</option>
               </select>
             </div>
           </div>
@@ -711,14 +697,14 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
         {/* TAB 3: AUDIO & SFX */}
         {/* ============================================================ */}
         {activeSubTab === 'audio' && (
-          <div className="space-y-5 animate-fade-in">
+          <div className="space-y-3.5 animate-fade-in">
             {/* Active SFX Status & Control Panel */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+            <div className="bg-[var(--secondary)] rounded-xl border border-[var(--border)] p-3 space-y-2.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Volume2 className="w-4 h-4 text-indigo-600" />
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    Sound Effect Scene Ini:
+                <div className="flex items-center gap-1.5">
+                  <Volume2 className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-xs font-bold text-[var(--fg-app)] uppercase tracking-wider">
+                    Sound Effect:
                   </span>
                 </div>
 
@@ -726,52 +712,52 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
                   <button
                     type="button"
                     onClick={handlePlayPreview}
-                    className="min-h-[36px] px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    className="alco-btn alco-btn-primary text-xs h-8 px-2.5 py-1"
                   >
-                    <Play className="w-3 h-3 fill-white" />
-                    <span>Dengar Suara Ini</span>
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Dengar Suara</span>
                   </button>
                 ) : (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-600 border border-slate-300">
-                    Suara bersih dipilih agar voice tetap jelas
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)]">
+                    Clean Voice (No SFX)
                   </span>
                 )}
               </div>
 
               {/* Selection Reason Display */}
-              <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs">
-                <span className="font-bold text-slate-700 block mb-0.5">Alasan Pemilihan SFX:</span>
-                <p className="text-slate-600 font-medium leading-relaxed">
+              <div className="bg-[var(--card)] p-2.5 rounded-lg border border-[var(--border)] text-xs">
+                <span className="font-bold text-[var(--fg-app)] block mb-0.5 text-[11px]">SFX Logic Reason:</span>
+                <p className="text-[var(--muted-foreground)] text-[11px] leading-relaxed">
                   {scene.sfxReason || scene.sfxLayerSkipReason || 'Pilihan otomatis AI editor untuk kejelasan vokal.'}
                 </p>
               </div>
 
               {/* 3 Explicit SFX Control Buttons: Keep SFX | Disable SFX | Change SFX */}
-              <div className="pt-2 border-t border-slate-200/80 flex items-center gap-2">
+              <div className="pt-2 border-t border-[var(--border)] flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={handleKeepSfx}
-                  className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                  className={`flex-1 min-h-[34px] px-2 py-1 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-colors cursor-pointer ${
                     (scene.sfxName || scene.sound_effect || 'none') !== 'none'
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                      : 'bg-[var(--card)] text-[var(--fg-app)] border-[var(--border)] hover:border-[var(--muted-foreground)]'
                   }`}
                 >
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Keep SFX</span>
+                  <Check className="w-3 h-3" />
+                  <span>Keep</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleDisableSfx}
-                  className={`flex-1 min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                  className={`flex-1 min-h-[34px] px-2 py-1 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-colors cursor-pointer ${
                     (scene.sfxName || scene.sound_effect || 'none') === 'none'
                       ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                      : 'bg-white text-rose-600 border-rose-200 hover:bg-rose-50'
+                      : 'bg-[var(--card)] text-rose-500 border-[var(--border)] hover:bg-rose-500/10'
                   }`}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Disable SFX</span>
+                  <Trash2 className="w-3 h-3" />
+                  <span>Disable</span>
                 </button>
 
                 <button
@@ -780,19 +766,19 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
                     const el = document.getElementById('sfx-selector-section');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-bold border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  className="flex-1 min-h-[34px] px-2 py-1 rounded-lg text-xs font-bold border border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 flex items-center justify-center gap-1 transition-colors cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Change SFX</span>
+                  <Sparkles className="w-3 h-3" />
+                  <span>Catalog</span>
                 </button>
               </div>
 
               {/* SFX Intensity Slider */}
               {(scene.sfxName || scene.sound_effect) && (scene.sfxName || scene.sound_effect) !== 'none' && (
-                <div className="space-y-1.5 pt-2 border-t border-slate-200/80">
+                <div className="space-y-1 pt-2 border-t border-[var(--border)]">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-600">Volume Efek Suara:</span>
-                    <span className="font-mono font-bold text-indigo-600">
+                    <span className="font-semibold text-[var(--muted-foreground)] text-[11px]">SFX Volume:</span>
+                    <span className="font-mono font-bold text-blue-500 text-[11px]">
                       {Math.round((scene.sfxIntensity || 0.75) * 100)}%
                     </span>
                   </div>
@@ -803,58 +789,58 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
                     step="0.05"
                     value={scene.sfxIntensity || 0.75}
                     onChange={(e) => updateSceneWithEditFlag({ sfxIntensity: parseFloat(e.target.value) })}
-                    className="w-full accent-indigo-600 cursor-pointer"
+                    className="w-full accent-blue-500 cursor-pointer"
                   />
                 </div>
               )}
             </div>
 
             {/* Categorized SFX Selector with Individual Preview Buttons */}
-            <div id="sfx-selector-section" className="space-y-4 pt-1">
+            <div id="sfx-selector-section" className="space-y-3 pt-1">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Pilih Efek Suara (Klik ▶ untuk mendengarkan contoh):
+                <label className="alco-section-label">
+                  SFX Library Catalog:
                 </label>
                 <button
                   type="button"
                   onClick={() => handleSoundEffectChange('none')}
-                  className={`min-h-[32px] px-3 py-1 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                  className={`min-h-[28px] px-2 py-0.5 rounded text-[11px] font-bold border transition-colors cursor-pointer ${
                     (scene.sfxName || scene.sound_effect || 'none') === 'none'
-                      ? 'bg-slate-800 text-white border-slate-800'
-                      : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]'
                   }`}
                 >
-                  Tanpa SFX (Clean Voice)
+                  No SFX
                 </button>
               </div>
 
-              <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 alco-scrollbar">
                 {SFX_CATEGORIES.map((cat) => (
-                  <div key={cat.name} className="space-y-1.5">
-                    <h5 className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                  <div key={cat.name} className="space-y-1">
+                    <h5 className="text-[10px] font-extrabold text-[var(--muted-foreground)] uppercase tracking-wider">
                       {cat.name}
                     </h5>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                       {cat.items.map((item) => {
                         const isSelected = (scene.sfxName || scene.sound_effect) === item.id;
                         return (
                           <div
                             key={item.id}
-                            className={`min-h-[44px] p-2.5 rounded-2xl border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
+                            className={`min-h-[38px] p-2 rounded-lg border flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none ${
                               isSelected
-                                ? 'bg-indigo-50 border-indigo-500 shadow-xs ring-2 ring-indigo-500'
-                                : 'bg-slate-50 border-slate-200 hover:bg-white hover:border-slate-300'
+                                ? 'bg-blue-500/10 border-blue-500 ring-1 ring-blue-500'
+                                : 'bg-[var(--secondary)] border-[var(--border)] hover:border-[var(--muted-foreground)]'
                             }`}
                             onClick={() => handleSoundEffectChange(item.id as SoundEffectType)}
                           >
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 stroke-[3]" />}
-                                <span className={`text-xs font-bold truncate ${isSelected ? 'text-indigo-950' : 'text-slate-800'}`}>
+                              <div className="flex items-center gap-1">
+                                {isSelected && <Check className="w-3 h-3 text-blue-500 stroke-[3]" />}
+                                <span className={`text-[11px] font-bold truncate ${isSelected ? 'text-blue-500' : 'text-[var(--fg-app)]'}`}>
                                   {item.label}
                                 </span>
                               </div>
-                              <p className="text-[10px] text-slate-500 line-clamp-1">{item.desc}</p>
+                              <p className="text-[9px] text-[var(--muted-foreground)] line-clamp-1">{item.desc}</p>
                             </div>
 
                             {/* Single SFX Preview Button */}
@@ -864,10 +850,10 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
                                 e.stopPropagation();
                                 playSoundEffect(item.id as SoundEffectType, 0.5);
                               }}
-                              className="min-h-[36px] min-w-[36px] p-2 rounded-xl bg-white hover:bg-indigo-600 text-slate-700 hover:text-white border border-slate-200 hover:border-indigo-600 shadow-2xs flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                              className="w-7 h-7 rounded bg-[var(--card)] hover:bg-blue-600 text-[var(--muted-foreground)] hover:text-white border border-[var(--border)] flex items-center justify-center transition-colors cursor-pointer shrink-0"
                               title={`Dengar contoh suara ${item.label}`}
                             >
-                              <Play className="w-3.5 h-3.5 fill-current" />
+                              <Play className="w-2.5 h-2.5 fill-current" />
                             </button>
                           </div>
                         );
@@ -881,74 +867,74 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
         )}
 
         {/* Collapsible Advanced Technical Details (Progressive Disclosure) */}
-        <div className="pt-2 border-t border-slate-100">
+        <div className="pt-2 border-t border-[var(--border)]">
           <button
             type="button"
             onClick={() => setShowAdvancedDetails((prev) => !prev)}
-            className="w-full flex items-center justify-between py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-between py-1.5 text-xs font-bold text-[var(--muted-foreground)] hover:text-[var(--fg-app)] transition-colors cursor-pointer"
           >
-            <span>Detail Diagnostik & Analisis Kamera (Advanced)</span>
-            {showAdvancedDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <span>Diagnostic & AI Camera Safeguard (Advanced)</span>
+            {showAdvancedDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
           {showAdvancedDetails && (
-            <div className="mt-3 space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs animate-fade-in">
+            <div className="mt-2.5 space-y-2.5 p-3 bg-[var(--secondary)] rounded-xl border border-[var(--border)] text-xs animate-fade-in">
               {scene.talking_head_framing && (
-                <div className="space-y-1.5">
-                  <div className="font-bold text-slate-700 flex items-center gap-1.5">
-                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <div className="space-y-1">
+                  <div className="font-bold text-[var(--fg-app)] flex items-center gap-1.5 text-[11px]">
+                    <UserCheck className="w-3 h-3 text-emerald-500" />
                     <span>Framing Wajah: {scene.talking_head_framing.protection_status}</span>
                   </div>
-                  <p className="text-[11px] text-slate-500">{scene.talking_head_framing.note}</p>
+                  <p className="text-[10px] text-[var(--muted-foreground)]">{scene.talking_head_framing.note}</p>
                 </div>
               )}
 
               {scene.visual_correction && (
-                <div className="space-y-1.5 pt-2 border-t border-slate-200">
-                  <div className="font-bold text-slate-700 flex items-center gap-1.5">
-                    <Sun className="w-3.5 h-3.5 text-cyan-600" />
+                <div className="space-y-1 pt-1.5 border-t border-[var(--border)]">
+                  <div className="font-bold text-[var(--fg-app)] flex items-center gap-1.5 text-[11px]">
+                    <Sun className="w-3 h-3 text-cyan-500" />
                     <span>Koreksi Pencahayaan: {scene.visual_correction.status}</span>
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[10px] text-[var(--muted-foreground)]">
                     Kecerahan: {scene.visual_correction.brightness}% • Kontras: {scene.visual_correction.contrast}%
                   </p>
                 </div>
               )}
 
-              <div className="pt-2 border-t border-slate-200 flex justify-between text-[11px] text-slate-400 font-mono">
+              <div className="pt-1.5 border-t border-[var(--border)] flex justify-between text-[10px] text-[var(--muted-foreground)] font-mono">
                 <span>Scene ID: {scene.id}</span>
                 <span>Role: {scene.role}</span>
-                <span>SFX Intent: {scene.sfxIntent || 'none'}</span>
+                <span>SFX: {scene.sfxIntent || 'none'}</span>
               </div>
             </div>
           )}
         </div>
 
         {/* AI Scene Regenerator Prompt */}
-        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+        <div className="pt-2.5 border-t border-[var(--border)] flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <input
             type="text"
             value={customAiPrompt}
             onChange={(e) => setCustomAiPrompt(e.target.value)}
-            placeholder="Instruksi AI khusus: Buat zoom lebih cepat / ganti subtitle lebih punchy..."
-            className="flex-1 min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+            placeholder="Instruksi AI khusus: Buat zoom lebih cepat / subtitle punchy..."
+            className="alco-input flex-1 min-h-[38px] text-xs"
           />
 
           <button
             type="button"
             disabled={isRegenerating}
             onClick={handleRegenClick}
-            className="min-h-[44px] px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer shrink-0"
+            className="alco-btn alco-btn-primary min-h-[38px] px-3 text-xs shrink-0"
           >
             {isRegenerating ? (
               <>
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Memperbarui...</span>
+                <span>Processing...</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Perbarui Scene dengan AI</span>
+                <span>Update AI Scene</span>
               </>
             )}
           </button>

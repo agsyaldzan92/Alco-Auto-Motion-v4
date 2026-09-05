@@ -820,71 +820,70 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
   return (
     <div className="flex flex-col items-center space-y-4">
       {/* Top View Mode & SFX Switcher Bar */}
-      <div className="w-full flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-2xl shadow-xs flex-wrap gap-2">
+      <div className="w-full flex items-center justify-between bg-[var(--card)] border border-[var(--border)] p-2 rounded-xl shadow-xs flex-wrap gap-2">
         {/* Mode Selector */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+        <div className="flex items-center gap-1 bg-[var(--secondary)] p-1 rounded-lg">
           <button
             id="btn-view-edited"
             onClick={() => setViewMode('edited')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-2.5 py-1 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
               viewMode === 'edited'
-                ? 'bg-white text-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[var(--card)] text-blue-500 shadow-2xs'
+                : 'text-[var(--muted-foreground)] hover:text-[var(--fg-app)]'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Alco Auto Motion (Edited)</span>
+            <span>Auto Motion (Edited)</span>
           </button>
 
           <button
             id="btn-view-raw"
             onClick={() => setViewMode('raw')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-2.5 py-1 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
               viewMode === 'raw'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[var(--card)] text-[var(--fg-app)] shadow-2xs'
+                : 'text-[var(--muted-foreground)] hover:text-[var(--fg-app)]'
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>Raw Video (Before)</span>
+            <span>Raw Video</span>
           </button>
 
           <button
             id="btn-view-split"
             onClick={() => setViewMode('split')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-2.5 py-1 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
               viewMode === 'split'
-                ? 'bg-white text-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[var(--card)] text-blue-500 shadow-2xs'
+                : 'text-[var(--muted-foreground)] hover:text-[var(--fg-app)]'
             }`}
           >
             <SplitSquareVertical className="w-3.5 h-3.5" />
-            <span>Split Comparison</span>
+            <span>Split Compare</span>
           </button>
         </div>
 
         {/* SFX and Editor Guide toggles */}
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-1.5 text-xs">
           <button
             onClick={() => setShowHud(!showHud)}
-            className={`px-3 py-1 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer font-semibold ${
+            className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer font-semibold ${
               showHud
-                ? 'border-indigo-300 bg-indigo-50 text-indigo-700 shadow-2xs'
-                : 'border-slate-200 bg-slate-50 text-slate-600'
+                ? 'border-blue-500/30 bg-blue-500/10 text-blue-500 shadow-2xs'
+                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted-foreground)]'
             }`}
             title="Toggle Editor Guide Overlay (Safezone, 0-3s Hook Marker, Director Badges)"
           >
             <Zap className="w-3.5 h-3.5" />
-            <span>Tampilkan Editor Guide: {showHud ? 'ON' : 'OFF'}</span>
+            <span>Guide: {showHud ? 'ON' : 'OFF'}</span>
           </button>
 
           <button
             onClick={() => setEnableSfx(!enableSfx)}
             className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
-
               enableSfx
-                ? 'border-indigo-200 bg-indigo-50 text-indigo-700 font-semibold'
-                : 'border-slate-200 bg-slate-50 text-slate-500'
+                ? 'border-blue-500/30 bg-blue-500/10 text-blue-500 font-semibold'
+                : 'border-[var(--border)] bg-[var(--secondary)] text-[var(--muted-foreground)]'
             }`}
           >
             <Volume2 className="w-3.5 h-3.5" />
@@ -1106,19 +1105,19 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
       </div>
 
       {/* Media Playback Controls Bar */}
-      <div className="w-full max-w-md flex items-center justify-between bg-white border border-slate-200 p-2 rounded-2xl shadow-xs">
-        <div className="flex items-center gap-2">
+      <div className="w-full max-w-md flex items-center justify-between bg-[var(--card)] border border-[var(--border)] p-2 rounded-xl shadow-xs">
+        <div className="flex items-center gap-1.5">
           <button
             id="btn-play-pause"
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-9 h-9 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-xs transition-all cursor-pointer"
+            className="w-9 h-9 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-xs transition-all cursor-pointer"
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
           </button>
 
           <button
             onClick={() => handleSeek(0)}
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer"
+            className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--fg-app)] hover:bg-[var(--secondary)] transition-all cursor-pointer"
             title="Replay from start"
           >
             <RotateCcw className="w-4 h-4" />
@@ -1126,14 +1125,14 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
 
           <button
             onClick={() => setIsMuted(!isMuted)}
-            className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer"
+            className="p-2 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--fg-app)] hover:bg-[var(--secondary)] transition-all cursor-pointer"
           >
             {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4" />}
           </button>
         </div>
 
-        <div className="text-xs font-mono text-slate-500">
-          <span className="text-indigo-600 font-bold">{currentTime.toFixed(1)}s</span> / {duration.toFixed(1)}s
+        <div className="text-xs font-mono text-[var(--muted-foreground)]">
+          <span className="text-blue-500 font-bold">{currentTime.toFixed(1)}s</span> / {duration.toFixed(1)}s
         </div>
       </div>
     </div>

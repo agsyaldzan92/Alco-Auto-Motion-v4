@@ -8,23 +8,13 @@ import {
   Sparkles,
   SlidersHorizontal,
   RefreshCw,
-  Layers,
-  Zap,
-  Type,
-  Move,
-  Film,
-  ShieldCheck,
-  Target,
-  UserCheck,
-  Sun,
   AlertTriangle,
   Undo2,
   Redo2,
   VolumeX,
-  Volume2,
   Trash2,
   RotateCcw,
-  CheckCircle2,
+  Type,
   X,
   ChevronUp,
 } from 'lucide-react';
@@ -215,40 +205,40 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
   const activeAlerts = liveAudit.recommendations.filter(r => r.severity === 'high' || r.severity === 'medium');
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:py-8 px-3 sm:px-6 space-y-5 sm:space-y-6">
+    <div className="w-full space-y-4 sm:space-y-5">
       {/* Live Retention & Marketing Quality Warning Bar */}
       {activeAlerts.length > 0 && (
-        <div className="bg-amber-50/80 border border-amber-200 p-4 rounded-2xl shadow-xs flex flex-col gap-3 animate-fade-in">
+        <div className="bg-amber-500/10 border border-amber-500/30 p-3 sm:p-4 rounded-xl shadow-xs flex flex-col gap-2.5 animate-fade-in">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold shadow-xs">
                 <AlertTriangle className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-amber-950 uppercase tracking-wider">
-                  Saran Optimasi Retensi ({activeAlerts.length})
+                <h3 className="text-xs font-bold text-[var(--fg-app)] uppercase tracking-wider">
+                  Retention Optimization Feedback ({activeAlerts.length})
                 </h3>
-                <p className="text-[11px] text-amber-800 font-medium">
-                  Sistem mendeteksi saran visual agar video Anda lebih memikat di 3 detik pertama.
+                <p className="text-[11px] text-[var(--muted-foreground)]">
+                  Saran visual terdeteksi agar video Anda lebih memikat di 3 detik pertama.
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-xs font-bold bg-white text-amber-900 px-3 py-1 rounded-full border border-amber-300">
-                Skor Retensi: {liveAudit.overallScore}/100 ({liveAudit.grade})
+              <span className="text-xs font-bold bg-[var(--card)] text-amber-500 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                Score: {liveAudit.overallScore}/100 ({liveAudit.grade})
               </span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {activeAlerts.slice(0, 2).map((rec) => (
-              <div key={rec.id} className="bg-white p-3 rounded-xl border border-amber-200 flex items-start gap-2.5 text-xs">
-                <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 mt-0.5 bg-amber-100 text-amber-800">
+              <div key={rec.id} className="bg-[var(--card)] p-2.5 rounded-lg border border-amber-500/20 flex items-start gap-2 text-xs">
+                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase shrink-0 mt-0.5 bg-amber-500/10 text-amber-500">
                   {rec.category}
                 </span>
                 <div>
-                  <p className="font-bold text-slate-800">{rec.title}</p>
-                  <p className="text-[11px] text-slate-600 mt-0.5">{rec.actionableFix}</p>
+                  <p className="font-bold text-[var(--fg-app)] text-[11px]">{rec.title}</p>
+                  <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{rec.actionableFix}</p>
                 </div>
               </div>
             ))}
@@ -256,46 +246,46 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
         </div>
       )}
 
-      {/* Top Action Bar: Project Summary, History (Undo/Redo), & CTA */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-slate-200 p-4 sm:p-5 rounded-3xl shadow-xs">
+      {/* Top Workspace Toolbar: Project Summary, History (Undo/Redo), & CTA */}
+      <div className="alco-toolbar flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+            <span className="px-2 py-0.5 rounded text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20">
               Studio Editor
             </span>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${activeStyleProfile.badgeColor}`}>
+            <span className={`px-2 py-0.5 rounded text-xs font-bold ${activeStyleProfile.badgeColor}`}>
               {activeStyleProfile.name}
             </span>
-            <span className="text-xs text-slate-500 font-mono">
+            <span className="text-xs text-[var(--muted-foreground)] font-mono">
               {project.scenes.length} Scenes • {project.total_duration}s Durasi
             </span>
           </div>
-          <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1 truncate max-w-xl">
+          <h2 className="text-sm sm:text-base font-bold text-[var(--fg-app)] tracking-tight mt-1 truncate max-w-xl">
             {project.title}
           </h2>
         </div>
 
         {/* Action Buttons: Undo/Redo, AI Proposal, Re-analyze, Export */}
-        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+        <div className="flex items-center gap-1.5 w-full sm:w-auto flex-wrap">
           {/* Undo / Redo Buttons */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div className="flex items-center bg-[var(--secondary)] p-0.5 rounded-lg border border-[var(--border)]">
             <button
               type="button"
               onClick={handleUndo}
               disabled={historyIndex <= 0}
-              className="min-h-[36px] min-w-[36px] p-2 rounded-lg text-slate-700 hover:text-indigo-600 hover:bg-white disabled:opacity-35 disabled:hover:bg-transparent disabled:hover:text-slate-700 transition-colors flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded text-[var(--muted-foreground)] hover:text-blue-500 hover:bg-[var(--card)] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[var(--muted-foreground)] transition-colors flex items-center justify-center cursor-pointer"
               title="Undo (Ctrl+Z)"
             >
-              <Undo2 className="w-4 h-4" />
+              <Undo2 className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={handleRedo}
               disabled={historyIndex >= history.length - 1}
-              className="min-h-[36px] min-w-[36px] p-2 rounded-lg text-slate-700 hover:text-indigo-600 hover:bg-white disabled:opacity-35 disabled:hover:bg-transparent disabled:hover:text-slate-700 transition-colors flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 rounded text-[var(--muted-foreground)] hover:text-blue-500 hover:bg-[var(--card)] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[var(--muted-foreground)] transition-colors flex items-center justify-center cursor-pointer"
               title="Redo (Ctrl+Y)"
             >
-              <Redo2 className="w-4 h-4" />
+              <Redo2 className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -304,9 +294,9 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
             <button
               type="button"
               onClick={onOpenProposalModal}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="alco-btn alco-btn-secondary text-xs h-9 px-3 text-purple-500 border-purple-500/30 hover:bg-purple-500/10"
             >
-              <Sparkles className="w-4 h-4 text-purple-600" />
+              <Sparkles className="w-3.5 h-3.5" />
               <span>Saran AI</span>
             </button>
           )}
@@ -315,7 +305,7 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
             type="button"
             disabled={isProcessing}
             onClick={onRegenerateAll}
-            className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+            className="alco-btn alco-btn-secondary text-xs h-9 px-3"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isProcessing ? 'animate-spin' : ''}`} />
             <span>Analisis Ulang</span>
@@ -325,64 +315,65 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
             id="btn-open-export"
             type="button"
             onClick={onOpenExportModal}
-            className="min-h-[44px] px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+            className="alco-btn alco-btn-primary text-xs h-9 px-4 font-bold"
           >
-            <Download className="w-4 h-4" />
-            <span>Export Video MP4</span>
+            <Download className="w-3.5 h-3.5" />
+            <span>Export Video</span>
           </button>
         </div>
       </div>
 
       {/* Global Batch Actions Bar (Quick Controls) */}
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 px-4 flex items-center justify-between gap-3 flex-wrap text-xs">
-        <span className="font-bold text-slate-700 flex items-center gap-1.5">
-          <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
+      <div className="bg-[var(--secondary)]/50 border border-[var(--border)] rounded-xl p-2.5 px-3 flex items-center justify-between gap-2 flex-wrap text-xs">
+        <span className="text-[11px] font-bold text-[var(--fg-app)] flex items-center gap-1.5">
+          <SlidersHorizontal className="w-3.5 h-3.5 text-blue-500" />
           Aksi Cepat Global:
         </span>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <button
             type="button"
             onClick={handleBatchMuteSfx}
-            className="min-h-[32px] px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold transition-colors cursor-pointer flex items-center gap-1"
+            className="alco-btn alco-btn-secondary text-xs h-7 px-2"
           >
-            <VolumeX className="w-3.5 h-3.5 text-slate-500" />
+            <VolumeX className="w-3 h-3 text-[var(--muted-foreground)]" />
             <span>Mute Semua SFX</span>
           </button>
 
           <button
             type="button"
             onClick={handleBatchRemoveBroll}
-            className="min-h-[32px] px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold transition-colors cursor-pointer flex items-center gap-1"
+            className="alco-btn alco-btn-secondary text-xs h-7 px-2"
           >
-            <Trash2 className="w-3.5 h-3.5 text-slate-500" />
+            <Trash2 className="w-3 h-3 text-[var(--muted-foreground)]" />
             <span>Hapus Semua B-Roll</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleBatchApplyCaptionStyle('hook')}
-            className="min-h-[32px] px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold transition-colors cursor-pointer flex items-center gap-1"
+            className="alco-btn alco-btn-secondary text-xs h-7 px-2"
           >
-            <Type className="w-3.5 h-3.5 text-slate-500" />
-            <span>Subtitle Hook Badge ke Semua</span>
+            <Type className="w-3 h-3 text-[var(--muted-foreground)]" />
+            <span>Hook Subtitle ke Semua</span>
           </button>
 
           <button
             type="button"
             onClick={handleBatchResetAllToAi}
-            className="min-h-[32px] px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold transition-colors cursor-pointer flex items-center gap-1"
+            className="alco-btn alco-btn-secondary text-xs h-7 px-2"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+            <RotateCcw className="w-3 h-3 text-[var(--muted-foreground)]" />
             <span>Reset Semua ke AI</span>
           </button>
         </div>
       </div>
 
-      {/* Main Workspace Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-        {/* Left Column: 9:16 Preview Player (5 Cols Desktop) */}
-        <div className="lg:col-span-5 flex flex-col items-center w-full">
+      {/* Main Workspace Layout (Desktop: Preview + Timeline on Left, Inspector on Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+        {/* Left Column: Video Preview Player & Timeline Track beneath it (~62% width) */}
+        <div className="lg:col-span-7 flex flex-col space-y-4 w-full">
+          {/* Video Preview Player */}
           <PreviewPlayer
             videoUrl={videoUrl}
             scenes={project.scenes}
@@ -398,11 +389,8 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
             setViewMode={setViewMode}
             contentType={project.video_type}
           />
-        </div>
 
-        {/* Right Column: Timeline & Scene Inspector (7 Cols Desktop) */}
-        <div className="lg:col-span-7 space-y-6 w-full">
-          {/* Timeline Bar */}
+          {/* Timeline Bar (Directly beneath preview) */}
           <TimelineView
             scenes={project.scenes}
             currentTime={currentTime}
@@ -414,7 +402,7 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
               if (targetScene) {
                 setCurrentTime(targetScene.start);
               }
-              // On mobile, also trigger bottom sheet for editing
+              // On mobile, trigger bottom sheet for editing
               if (window.innerWidth < 1024) {
                 setIsMobileSheetOpen(true);
               }
@@ -425,9 +413,12 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
               if (sIdx !== -1) setActiveSceneIndex(sIdx);
             }}
           />
+        </div>
 
-          {/* Desktop Scene Inspector (Hidden on mobile when using bottom sheet) */}
-          <div className="hidden lg:block">
+        {/* Right Column: Scene Inspector Panel (~38% width) */}
+        <div className="lg:col-span-5 space-y-4 w-full">
+          {/* Desktop Scene Inspector */}
+          <div className="hidden lg:block sticky top-4">
             <SceneInspector
               scene={currentScene}
               sceneIndex={activeSceneIndex}
@@ -442,7 +433,7 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
             <button
               type="button"
               onClick={() => setIsMobileSheetOpen(true)}
-              className="w-full min-h-[48px] py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md cursor-pointer transition-colors"
+              className="alco-btn alco-btn-primary w-full min-h-[44px] py-2.5 px-4 font-bold text-xs flex items-center justify-center gap-2"
             >
               <SlidersHorizontal className="w-4 h-4" />
               <span>Edit Scene #{activeSceneIndex + 1} (Buka Inspector)</span>
@@ -454,25 +445,25 @@ export const EditPlanTab: React.FC<EditPlanTabProps> = ({
 
       {/* Mobile Bottom Sheet Modal for Scene Inspector */}
       {isMobileSheetOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex flex-col justify-end lg:hidden animate-fade-in">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end lg:hidden animate-fade-in">
           <div
-            className="bg-white rounded-t-3xl max-h-[85vh] w-full flex flex-col shadow-2xl overflow-hidden animate-slide-up"
+            className="bg-[var(--card)] rounded-t-2xl max-h-[85vh] w-full flex flex-col shadow-2xl border-t border-[var(--border)] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Handle & Close */}
-            <div className="p-3 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50">
-              <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto" />
+            <div className="p-3 border-b border-[var(--border)] flex items-center justify-between shrink-0 bg-[var(--secondary)]">
+              <div className="w-10 h-1 bg-[var(--muted-foreground)]/40 rounded-full mx-auto" />
               <button
                 type="button"
                 onClick={() => setIsMobileSheetOpen(false)}
-                className="p-1.5 rounded-full hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+                className="p-1 rounded-lg hover:bg-[var(--secondary)] text-[var(--muted-foreground)] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Sheet Scrollable Body */}
-            <div className="overflow-y-auto flex-1 p-2">
+            <div className="overflow-y-auto flex-1 p-3 alco-scrollbar">
               <SceneInspector
                 scene={currentScene}
                 sceneIndex={activeSceneIndex}
