@@ -18,7 +18,8 @@ import multer from 'multer';
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Temporary upload directory for direct streaming multipart form video uploads
 const tempUploadDir = path.join(os.tmpdir(), 'alco_stream_uploads');
@@ -1552,8 +1553,8 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Alco Auto Motion server running at http://0.0.0.0:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`Alco Auto Motion server running at http://${HOST}:${PORT}`);
   });
 }
 

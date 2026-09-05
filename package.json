@@ -1,15 +1,20 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "ALCO Auto Motion - AI Video Editing Director & Motion Engine",
+  "author": "Aladzan Corpora Ecosystem",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "desktop:dev": "concurrently -k -r -s first \"npm run dev\" \"wait-on -t 30000 http-get://127.0.0.1:3000/api/health && electron .\"",
+    "desktop:build": "npm run build && electron-builder --config electron/package.cjs"
   },
   "dependencies": {
     "@ffmpeg/core": "^0.12.10",
@@ -32,10 +37,14 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^10.0.5",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
     "esbuild": "^0.25.0",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "wait-on": "^9.1.0"
   }
 }
