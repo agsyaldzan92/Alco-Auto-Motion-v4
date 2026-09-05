@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
 import { InputTab } from './components/InputTab';
 import { AiAnalysisTab } from './components/AiAnalysisTab';
 import { EditPlanTab } from './components/EditPlanTab';
@@ -15,6 +16,7 @@ import { useTheme } from './hooks/useTheme';
 export default function App() {
   useTheme();
   const [activeTab, setActiveTab] = useState<'input' | 'analysis' | 'edit_preview'>('input');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [contentType, setContentType] = useState<ContentType>('education');
   const [rawScript, setRawScript] = useState<string>(SAMPLE_VIDEOS[0].rawTranscript);
   const [videoGoal, setVideoGoal] = useState<string>(SAMPLE_VIDEOS[0].goal);
@@ -172,7 +174,7 @@ export default function App() {
   // User starts on Upload page and chooses to Upload Video or Try Demo (no auto-run)
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
+    <div className="h-screen w-screen overflow-hidden bg-[var(--bg-app)] text-[var(--fg-app)] flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       {/* Top Header */}
       <Header
         activeTab={activeTab}
@@ -180,7 +182,80 @@ export default function App() {
         hasPlan={!!project}
         isProcessing={processingState.isProcessing}
         onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+        onOpenExportModal={() => setIsExportModalOpen(true)}
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
       />
+
+      {/* Main Workspace Body with Sidebar Rail */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Sidebar */}
+        <Sidebar
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+          hasPlan={!!project}
+          isProcessing={processingState.isProcessing}
+          onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+          onOpenExportModal={() => setIsExportModalOpen(true)}
+          isMobileOpen={isMobileSidebarOpen}
+          onMobileClose={() => setIsMobileSidebarOpen(false)}
+        />
+
+        {/* Main Workspace Content */}
+        <main className="flex-1 min-w-0 overflow-y-auto alco-scrollbar p-4 md:p-6">
+          {activeTab === 'input' && (
+            <InputTab
+              contentType={contentType}
+              setContentType={setContentType}
+              rawScript={rawScript}
+              setRawScript={setRawScript}
+              videoGoal={videoGoal}
+              setVideoGoal={setVideoGoal}
+              ctaText={ctaText}
+              setCtaText={setCtaText}
+              videoUrl={activeVideoUrl}
+              videoFile={activeVideoFile}
+              uploadedFile={uploadedFile}
+              uploadedUrl={uploadedUrl}
+              selectedSampleId={selectedSampleId}
+              onSelectSample={handleSelectSample}
+              onUploadCustomFile={handleUploadCustomFile}
+              onRestoreUploadedFile={handleRestoreUploadedFile}
+              videoDuration={videoDuration}
+              setVideoDuration={setVideoDuration}
+              videoMeta={videoMeta}
+              setVideoMeta={setVideoMeta}
+              userAssets={userAssets}
+              onAddUserAsset={handleAddUserAsset}
+              onRemoveUserAsset={handleRemoveUserAsset}
+              onStartAnalysis={(sample) => runAnalysis(sample)}
+              processingState={processingState}
+              onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+            />
+          )}
+
+          {activeTab === 'analysis' && (
+            <AiAnalysisTab
+              project={project}
+              onProceedToPreview={() => setActiveTab('edit_preview')}
+            />
+          )}
+
+          {activeTab === 'edit_preview' && project && (
+            <EditPlanTab
+              project={project}
+              videoUrl={activeVideoUrl}
+              onUpdateProject={setProject}
+              onOpenExportModal={() => setIsExportModalOpen(true)}
+              onRegenerateAll={() => runAnalysis()}
+              onOpenProposalModal={() => {
+                setProposalProject(project);
+                setIsProposalModalOpen(true);
+              }}
+              isProcessing={processingState.isProcessing}
+            />
+          )}
+        </main>
+      </div>
 
       {/* Real-time Multi-Step AI Processing Modal */}
       {processingState.isProcessing && (
@@ -207,62 +282,6 @@ export default function App() {
         }}
         onApplyDecisions={handleApplyAiProposal}
       />
-
-      {/* Main Tab Content */}
-      <main className="flex-1 pb-16">
-        {activeTab === 'input' && (
-          <InputTab
-            contentType={contentType}
-            setContentType={setContentType}
-            rawScript={rawScript}
-            setRawScript={setRawScript}
-            videoGoal={videoGoal}
-            setVideoGoal={setVideoGoal}
-            ctaText={ctaText}
-            setCtaText={setCtaText}
-            videoUrl={activeVideoUrl}
-            videoFile={activeVideoFile}
-            uploadedFile={uploadedFile}
-            uploadedUrl={uploadedUrl}
-            selectedSampleId={selectedSampleId}
-            onSelectSample={handleSelectSample}
-            onUploadCustomFile={handleUploadCustomFile}
-            onRestoreUploadedFile={handleRestoreUploadedFile}
-            videoDuration={videoDuration}
-            setVideoDuration={setVideoDuration}
-            videoMeta={videoMeta}
-            setVideoMeta={setVideoMeta}
-            userAssets={userAssets}
-            onAddUserAsset={handleAddUserAsset}
-            onRemoveUserAsset={handleRemoveUserAsset}
-            onStartAnalysis={(sample) => runAnalysis(sample)}
-            processingState={processingState}
-            onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
-          />
-        )}
-
-        {activeTab === 'analysis' && (
-          <AiAnalysisTab
-            project={project}
-            onProceedToPreview={() => setActiveTab('edit_preview')}
-          />
-        )}
-
-        {activeTab === 'edit_preview' && project && (
-          <EditPlanTab
-            project={project}
-            videoUrl={activeVideoUrl}
-            onUpdateProject={setProject}
-            onOpenExportModal={() => setIsExportModalOpen(true)}
-            onRegenerateAll={() => runAnalysis()}
-            onOpenProposalModal={() => {
-              setProposalProject(project);
-              setIsProposalModalOpen(true);
-            }}
-            isProcessing={processingState.isProcessing}
-          />
-        )}
-      </main>
 
       {/* Export Modal */}
       {project && (
