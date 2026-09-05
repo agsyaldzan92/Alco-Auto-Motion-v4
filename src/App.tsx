@@ -10,8 +10,10 @@ import { AiProposalModal } from './components/AiProposalModal';
 import { ContentType, AlcoEditingProject, SampleVideoOption, UserProofAsset } from './types';
 import { SAMPLE_VIDEOS } from './data/sampleVideos';
 import { useAiWorkflow } from './hooks/useAiWorkflow';
+import { useTheme } from './hooks/useTheme';
 
 export default function App() {
+  useTheme();
   const [activeTab, setActiveTab] = useState<'input' | 'analysis' | 'edit_preview'>('input');
   const [contentType, setContentType] = useState<ContentType>('education');
   const [rawScript, setRawScript] = useState<string>(SAMPLE_VIDEOS[0].rawTranscript);
