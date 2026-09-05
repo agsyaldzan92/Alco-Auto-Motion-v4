@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, Sun, Moon, Monitor, Download, ChevronDown, Sparkles } from 'lucide-react';
 import { ApiKeyControl } from './ApiKeyControl';
-import { useTheme, ThemeMode } from '../hooks/useTheme';
+import { ThemeMode } from '../hooks/useTheme';
 
 interface HeaderProps {
   onToggleMobileSidebar: () => void;
@@ -11,6 +11,9 @@ interface HeaderProps {
   isProcessing?: boolean;
   activeTab?: 'input' | 'analysis' | 'edit_preview';
   onSelectTab?: (tab: 'input' | 'analysis' | 'edit_preview') => void;
+  theme?: ThemeMode;
+  resolvedTheme?: 'light' | 'dark';
+  onThemeChange?: (theme: ThemeMode) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,8 +22,9 @@ export const Header: React.FC<HeaderProps> = ({
   hasPlan,
   onOpenExportModal,
   isProcessing,
+  theme = 'dark',
+  onThemeChange,
 }) => {
-  const { theme, setTheme, resolvedTheme } = useTheme();
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const themeRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getThemeIcon = (t: ThemeMode) => {
+  const getThemeIcon = (t: ThemeMode | string) => {
     if (t === 'light') return <Sun className="w-3.5 h-3.5 text-amber-500" />;
     if (t === 'dark') return <Moon className="w-3.5 h-3.5 text-blue-400" />;
     return <Monitor className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />;
@@ -96,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   key={mode}
                   onClick={() => {
-                    setTheme(mode);
+                    onThemeChange?.(mode);
                     setIsThemeOpen(false);
                   }}
                   className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md capitalize transition-colors ${

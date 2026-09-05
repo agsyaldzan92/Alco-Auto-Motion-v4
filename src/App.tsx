@@ -14,7 +14,7 @@ import { useAiWorkflow } from './hooks/useAiWorkflow';
 import { useTheme } from './hooks/useTheme';
 
 export default function App() {
-  useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<'input' | 'analysis' | 'edit_preview'>('input');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const [contentType, setContentType] = useState<ContentType>('education');
@@ -184,6 +184,9 @@ export default function App() {
         onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
         onOpenExportModal={() => setIsExportModalOpen(true)}
         onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
+        theme={theme}
+        resolvedTheme={resolvedTheme}
+        onThemeChange={setTheme}
       />
 
       {/* Main Workspace Body with Sidebar Rail */}
