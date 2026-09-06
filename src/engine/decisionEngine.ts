@@ -12,6 +12,7 @@ import {
   SFXPurpose,
   SFXIntent,
   CreativeRhythmProfile,
+  EditingIntensity,
 } from '../types';
 import { SFX_PURPOSE_MAPPINGS, SFX_INTENT_MAP, SFX_CONFIGS } from '../utils/sharedMediaMapping';
 import { sanitizeCaptionText } from '../utils/headlineSanitizer';
@@ -65,6 +66,161 @@ export function mapContentRoleToAdRole(role: ContentRole, text: string = ''): Ad
   return 'insight';
 }
 
+export interface EditingIntensityParams {
+  role: ContentRole;
+  adRole: AdRole;
+  importance?: number;
+  scores?: SceneIntelligenceScore;
+  index: number;
+  totalScenes: number;
+  wordsPerSecond?: number;
+  text?: string;
+  hasUserAsset?: boolean;
+}
+
+/**
+ * Calculates editing intensity level: LOW | MEDIUM | HIGH (Step 9.1 Model)
+ * HIGH: Hook, breakthrough moment, verified proof numbers, decisive CTA
+ * MEDIUM: Problem agitate, key solution reveal, inquisitive inquiry
+ * LOW: Calm explanation, background storytelling, casual context, neutral talking head
+ */
+export function calculateEditingIntensity(params: EditingIntensityParams): EditingIntensity {
+  const { role, adRole, importance = 5, scores, index, totalScenes, text = '', wordsPerSecond = 2.5 } = params;
+  const textUpper = text.toUpperCase();
+  const isHook = index === 0 || role === 'hook' || adRole === 'hook';
+  const isCta = index === totalScenes - 1 || role === 'cta' || adRole === 'cta';
+  const hasStrongNumbers = /\d+%|\d+X|\d+\s*(jt|juta|ribu|rb|roas|omset|milyar)/i.test(textUpper);
+
+  // 1. HIGH INTENSITY MOMENTS
+  if (isHook || isCta) {
+    return 'HIGH';
+  }
+  if (adRole === 'proof' && (scores?.proof_strength ?? 0) >= 7.5) {
+    return 'HIGH';
+  }
+  if (hasStrongNumbers && (textUpper.includes('ROAS') || textUpper.includes('OMSET') || textUpper.includes('10X') || textUpper.includes('5X'))) {
+    return 'HIGH';
+  }
+  if ((scores?.urgency_score ?? 0) >= 8 || (scores?.emotional_intensity ?? 0) >= 8) {
+    return 'HIGH';
+  }
+  if (importance >= 9) {
+    return 'HIGH';
+  }
+
+  // 2. LOW INTENSITY MOMENTS (Natural breathing room, conversational cadence)
+  if ((role === 'explanation' || adRole === 'insight') && importance <= 5 && !hasStrongNumbers && (scores?.emotional_intensity ?? 5) <= 5) {
+    return 'LOW';
+  }
+  if (wordsPerSecond > 3.8 && !hasStrongNumbers && !isHook && !isCta) {
+    return 'LOW';
+  }
+  if (importance <= 3) {
+    return 'LOW';
+  }
+
+  // 3. MEDIUM INTENSITY (Balanced flow)
+  return 'MEDIUM';
+}
+
+export interface EffectBudgetEvaluation {
+  complexityScore: number;
+  simplified: boolean;
+  adjustedMotion: any;
+  adjustedMotionScale: number;
+  adjustedTransition: any;
+  activeEffects: string[];
+}
+
+/**
+ * Enforces MAX_HOOK_EFFECTS & MAX_VISUAL_COMPLEXITY to prevent effect stacking/over-editing (Step 9.1)
+ * Eliminates visual collisions when overlays, punch zooms, and transitions fight for attention.
+ */
+export function evaluateEffectCollisionAndBudget(params: {
+  motion: string;
+  motionScale: number;
+  transition: string;
+  brollFormat: BrollFormat;
+  visualDecision: VisualDecision;
+  hasVisualEvidence: boolean;
+  sfxName: SoundEffectType;
+  sfxLayered?: boolean;
+  hookText?: string;
+  highlightWordsCount: number;
+  isHook: boolean;
+}): EffectBudgetEvaluation {
+  let complexityScore = 0;
+  const activeEffects: string[] = [];
+
+  // Motion weight
+  if (params.motion === 'punch_zoom' || params.motionScale >= 1.15) {
+    complexityScore += 25;
+    activeEffects.push(`Aggressive Motion (${params.motion} ${params.motionScale}x)`);
+  } else if (params.motion !== 'normal') {
+    complexityScore += 12;
+    activeEffects.push(`Camera Motion (${params.motion})`);
+  }
+
+  // Visual Overlay / Evidence weight
+  const hasOverlay =
+    params.hasVisualEvidence ||
+    ['BROLL', 'PRODUCT_DEMO', 'SCREENSHOT', 'GRAPH', 'SPLIT_SCREEN'].includes(params.visualDecision) ||
+    params.brollFormat === 'data_card';
+  if (hasOverlay) {
+    complexityScore += 35;
+    activeEffects.push(`Visual Overlay / Card (${params.visualDecision})`);
+  }
+
+  // Transition weight
+  if (['flash', 'whip_pan', 'zoom_cut'].includes(params.transition)) {
+    complexityScore += 20;
+    activeEffects.push(`Dynamic Transition (${params.transition})`);
+  }
+
+  // SFX weight
+  if (params.sfxName && params.sfxName !== 'none') {
+    complexityScore += params.sfxLayered ? 25 : 15;
+    activeEffects.push(`Sound Cue (${params.sfxName})`);
+  }
+
+  // Hook Headline weight
+  if (params.isHook && params.hookText) {
+    complexityScore += 20;
+    activeEffects.push('Hook Headline');
+  }
+
+  // Caption Highlights weight
+  if (params.highlightWordsCount >= 3) {
+    complexityScore += 15;
+    activeEffects.push('Heavy Caption Highlights');
+  }
+
+  let simplified = false;
+  let adjustedMotion = params.motion;
+  let adjustedMotionScale = params.motionScale;
+  let adjustedTransition = params.transition;
+
+  // OVER-EDITED CEILING: If complexity exceeds 70 and an active overlay is present, simplify camera & cut
+  if (complexityScore > 70 && hasOverlay) {
+    simplified = true;
+    adjustedMotion = params.motion === 'punch_zoom' ? 'normal' : params.motion;
+    adjustedMotionScale = adjustedMotion === 'normal' ? 1.0 : Math.min(1.05, params.motionScale);
+    adjustedTransition = 'cut';
+  } else if (complexityScore > 75) {
+    simplified = true;
+    adjustedTransition = 'cut';
+  }
+
+  return {
+    complexityScore,
+    simplified,
+    adjustedMotion,
+    adjustedMotionScale,
+    adjustedTransition,
+    activeEffects,
+  };
+}
+
 export interface BrollNeedParams {
   text: string;
   adRole: AdRole;
@@ -91,11 +247,18 @@ export interface BrollNeedResult {
   * 5. Visual unchanged for too long / long duration (+15)
   * 6. Static shot framing (+15)
   * 7. Talent has strong emotion/expression (-30 to protect A-roll)
+  * 8. Brief scene protection (< 1.3s, -25)
   */
 export function calculateBrollNeed(params: BrollNeedParams): BrollNeedResult {
   let score = 30; // base score
   const reasons: string[] = [];
   const textUpper = (params.text || '').toUpperCase();
+
+  // Protect very brief scenes (< 1.3s) from frantic cuts
+  if (params.duration < 1.3) {
+    score -= 25;
+    reasons.push('Duration < 1.3s too brief for B-roll cut (-25)');
+  }
 
   // 1. Concrete objects mentioned (+20)
   const concreteObjectsRegex = /LAPTOP|HP|HANDPHONE|UANG|MONEY|BUDGET|DASHBOARD|GRAFIK|SCREEN|BUKU|PRODUK|APLIKASI|SOFTWARE|SEPATU|BAJU|BOX|KERANJANG|BARANG|ALAT|KAMERA/i;
@@ -1078,21 +1241,41 @@ export function enrichSceneWithDecisionEngine(
     sfxReason = scene.sfxReason || `Manual SFX choice: ${sfxName}`;
   }
 
-  // SFX Cooldown Check (Min 2.0s between SFX triggers across scenes to prevent clutter - Batch 5)
+  // SFX Cooldown & Density Quota Check (Step 9.1: Target 30-50% SFX scenes to prevent clutter)
   let sfxCooldownApplied = false;
   if (sfxName !== 'none' && allEnrichedScenesSoFar.length > 0) {
-    const lastSfxScene = [...allEnrichedScenesSoFar].reverse().find(s => s.sound_effect && s.sound_effect !== 'none');
-    if (lastSfxScene) {
-      const timeSinceLastSfx = Math.abs(scene.start - lastSfxScene.start);
-      if (timeSinceLastSfx < SFX_EDITING_CONFIG.minSfxGapSeconds && index > 0) {
-        // Cooldown applied: keep speech clean
+    const sfxScenesSoFar = allEnrichedScenesSoFar.filter(s => s.sound_effect && s.sound_effect !== 'none');
+    const lastSfxScene = [...sfxScenesSoFar].reverse()[0];
+    const prevScene = allEnrichedScenesSoFar[allEnrichedScenesSoFar.length - 1];
+
+    // Check time gap
+    const timeSinceLastSfx = lastSfxScene ? Math.abs(scene.start - lastSfxScene.start) : 999;
+    const isConsecutiveSfx = prevScene && prevScene.sound_effect && prevScene.sound_effect !== 'none';
+    const sfxProjectedRatio = (sfxScenesSoFar.length + 1) / totalScenes;
+    const isExceedingDensity = sfxProjectedRatio > 0.55 || sfxScenesSoFar.length >= SFX_EDITING_CONFIG.maxSfxPerShortVideo;
+
+    const isNonExemptScene = index > 0 && index !== totalScenes - 1 && adRole !== 'cta';
+
+    if (isNonExemptScene) {
+      if (timeSinceLastSfx < SFX_EDITING_CONFIG.minSfxGapSeconds) {
         sfxCooldownApplied = true;
-        if (index !== totalScenes - 1 && adRole !== 'cta') {
-          sfxName = 'none';
-          selectedSfxIntent = 'none';
-          sfxIntensity = 0;
-          sfxReason = `SFX cooldown active (${timeSinceLastSfx.toFixed(1)}s < ${SFX_EDITING_CONFIG.minSfxGapSeconds}s gap): clean narration preserved to avoid clutter.`;
-        }
+        sfxName = 'none';
+        selectedSfxIntent = 'none';
+        sfxIntensity = 0;
+        sfxReason = `SFX cooldown active (${timeSinceLastSfx.toFixed(1)}s < ${SFX_EDITING_CONFIG.minSfxGapSeconds}s gap): clean narration preserved to avoid clutter.`;
+      } else if (isConsecutiveSfx && adRole !== 'proof') {
+        // Alternating cooldown: avoid back-to-back sound triggers unless critical proof
+        sfxCooldownApplied = true;
+        sfxName = 'none';
+        selectedSfxIntent = 'none';
+        sfxIntensity = 0;
+        sfxReason = 'Alternating audio cadence: consecutive SFX prevented to maintain natural speech clarity.';
+      } else if (isExceedingDensity && adRole !== 'proof') {
+        sfxCooldownApplied = true;
+        sfxName = 'none';
+        selectedSfxIntent = 'none';
+        sfxIntensity = 0;
+        sfxReason = `SFX density quota active (${Math.round(sfxProjectedRatio * 100)}% > 50% limit): preserved clean vocal priority.`;
       }
     }
   }
@@ -1116,6 +1299,29 @@ export function enrichSceneWithDecisionEngine(
   const sfxVoiceBalanceStatus: 'balanced' | 'voice_dominant' | 'unbalanced' =
     sfxName === 'none' ? 'voice_dominant' : (sfxPeakDb <= SFX_EDITING_CONFIG.targetSfxPeakDbMax && sfxPeakDb >= SFX_EDITING_CONFIG.targetSfxPeakDbMin ? 'balanced' : 'unbalanced');
 
+  // Step 9.1: Calculate Multi-Factor Editing Intensity (LOW | MEDIUM | HIGH)
+  const editing_intensity = calculateEditingIntensity({
+    role: scene.role,
+    adRole,
+    importance: scene.scores?.importance ?? 5,
+    scores: scene.scores,
+    index,
+    totalScenes,
+    wordsPerSecond,
+    text: scene.caption,
+    hasUserAsset: hasValidUserAsset,
+  });
+
+  // Calm / LOW Intensity Audio Safeguard: preserve natural speech without artificial sound effects
+  if (editing_intensity === 'LOW' && index > 0 && index !== totalScenes - 1 && adRole !== 'cta') {
+    if (sfxName !== 'none') {
+      sfxName = 'none';
+      selectedSfxIntent = 'none';
+      sfxIntensity = 0;
+      sfxReason = 'Low editing intensity: clean voice-first audio prioritized over sound cues.';
+    }
+  }
+
   // Batch 4: B-roll Relevance & Classification
   const brollRelevance = determineBrollRelevanceAndType({
     adRole,
@@ -1129,15 +1335,38 @@ export function enrichSceneWithDecisionEngine(
   // Batch 4: Creative Rhythm Profile
   const creativeRhythmProfile = determineCreativeRhythmProfile(adRole, index);
 
-  // Batch 4: Editing Rationale
-  const editingRationale = generateEditingRationale({
+  // Step 9.1: Effect Collision & Budgeting Evaluation (MAX_HOOK_EFFECTS & MAX_VISUAL_COMPLEXITY)
+  const budgetEval = evaluateEffectCollisionAndBudget({
+    motion: scene.motion,
+    motionScale: scene.motion_scale || 1.0,
+    transition: scene.transition || 'cut',
+    brollFormat,
+    visualDecision,
+    hasVisualEvidence: Boolean(scene.visual_evidence),
+    sfxName,
+    hookText,
+    highlightWordsCount: (scene.highlight_words || []).length,
+    isHook: index === 0 || scene.role === 'hook' || adRole === 'hook',
+  });
+
+  // Apply budget adjustments to prevent visual over-editing
+  const finalMotion = budgetEval.adjustedMotion;
+  const finalMotionScale = budgetEval.adjustedMotionScale;
+  const finalTransition = budgetEval.adjustedTransition;
+  const motionCooldownApplied = budgetEval.simplified || (scene.motion === 'normal' && allEnrichedScenesSoFar.slice(-1)[0]?.motion === 'punch_zoom');
+
+  // Batch 4: Editing Rationale (Enhanced with Step 9.1 Intensity & Budgeting)
+  const baseRationale = generateEditingRationale({
     adRole,
     rhythm: creativeRhythmProfile,
     sfxIntent: selectedSfxIntent,
     sfxName,
     brollTypeUsed: brollRelevance.brollTypeUsed,
-    motionScale: scene.motion_scale || 1.0,
+    motionScale: finalMotionScale,
   });
+  const editingRationale = budgetEval.simplified
+    ? `${baseRationale} [Intensity: ${editing_intensity} | Simplified for visual comfort: camera adjusted to ${finalMotion} to focus on content.]`
+    : `${baseRationale} [Intensity: ${editing_intensity}]`;
 
   // Sanitize caption text lightly for speech display
   const sanitizedCaption = sanitizeCaptionText(scene.caption || '');
@@ -1147,6 +1376,9 @@ export function enrichSceneWithDecisionEngine(
 
   const baseScene: SceneEditPlan = {
     ...scene,
+    motion: finalMotion,
+    motion_scale: finalMotionScale,
+    transition: finalTransition,
     caption: sanitizedCaption || scene.caption,
     adRole,
     brollNeedScore: brollNeed.score,
@@ -1174,6 +1406,14 @@ export function enrichSceneWithDecisionEngine(
     brollRandomAssetBlocked: brollRelevance.brollRandomAssetBlocked,
     creativeRhythmProfile,
     editingRationale,
+    editing_intensity,
+    visual_complexity_score: budgetEval.complexityScore,
+    motion_cooldown_applied: motionCooldownApplied,
+    effects_budget: {
+      maxEffects: index === 0 ? 3 : 2,
+      activeEffects: budgetEval.activeEffects,
+      simplified: budgetEval.simplified,
+    },
     broll: isNoOverlayDecision ? null : scene.broll,
     visual_evidence: isNoOverlayDecision ? null : scene.visual_evidence,
   };

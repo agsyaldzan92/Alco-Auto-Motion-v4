@@ -187,6 +187,7 @@ export function buildIntelligentEditPlan(
 
     // 2. Decide Context-Aware Motion & Camera Dynamics
     const nextRole = analysis[i + 1]?.content_role;
+    const previousMotionScale = scenes[i - 1]?.motion_scale;
     const motionResult = decideSceneMotion(
       role,
       scores,
@@ -195,7 +196,9 @@ export function buildIntelligentEditPlan(
       contentType,
       previousMotion,
       nextRole,
-      seg.text
+      seg.text,
+      undefined,
+      previousMotionScale
     );
     previousMotion = motionResult.motion;
 
@@ -289,7 +292,7 @@ export function buildIntelligentEditPlan(
       visual_correction: visualCorrection,
     };
 
-    const enrichedScene = enrichSceneWithDecisionEngine(rawScene, i, segments.length, !!(userAssets && userAssets.length > 0));
+    const enrichedScene = enrichSceneWithDecisionEngine(rawScene, i, segments.length, !!(userAssets && userAssets.length > 0), scenes);
     scenes.push(enrichedScene);
   }
 

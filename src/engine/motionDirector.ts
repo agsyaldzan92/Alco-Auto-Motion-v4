@@ -1,4 +1,4 @@
-import { MotionPreset, ContentRole, TransitionType, SoundEffectType, CameraDynamics, SceneIntelligenceScore, ContentType } from '../types';
+import { MotionPreset, ContentRole, TransitionType, SoundEffectType, CameraDynamics, SceneIntelligenceScore, ContentType, EditingIntensity } from '../types';
 
 export interface MotionDecisionResult {
   motion: MotionPreset;
@@ -7,11 +7,14 @@ export interface MotionDecisionResult {
   sound_effect: SoundEffectType;
   camera_dynamics: CameraDynamics;
   directorNote: string;
+  cooldownApplied?: boolean;
+  isStaticFraming?: boolean;
 }
 
 /**
- * AI Creative Performance Motion Director
- * Generates tailored camera kinematics and rhythm according to marketing role and editing grammar style
+ * AI Creative Performance Motion Director (Step 9.1 Quality Improvement)
+ * Generates tailored camera kinematics, pacing cooldown, and natural breathing room.
+ * Ensures 30-50% active motion budget and prevents consecutive repetitive presets.
  */
 export function decideSceneMotion(
   role: ContentRole,
@@ -21,7 +24,10 @@ export function decideSceneMotion(
   contentType: ContentType,
   previousMotion?: MotionPreset,
   nextRole?: ContentRole,
-  sceneText?: string
+  sceneText?: string,
+  editingIntensity?: EditingIntensity,
+  previousMotionScale?: number,
+  hasVisualLayerActive?: boolean
 ): MotionDecisionResult {
   const style = (contentType || 'meta_ads') as string;
   const isFastTikTok = style === 'fast_tiktok' || style === 'reels_tiktok';
@@ -36,6 +42,9 @@ export function decideSceneMotion(
   const isQuestion = cleanText.includes('?') || cleanText.startsWith('kenapa') || cleanText.startsWith('bagaimana') || cleanText.startsWith('mengapa') || cleanText.startsWith('tahu gak');
   const isCalmEducational = isEducational || isStorytelling || isCleanCreator;
   const isUrgent = cleanText.includes('sekarang') || cleanText.includes('stop') || cleanText.includes('bahaya') || cleanText.includes('terbukti') || cleanText.includes('rahasia');
+
+  // Check if previous scene had aggressive or punch motion
+  const previousWasAggressive = previousMotion === 'punch_zoom' || (previousMotionScale !== undefined && previousMotionScale >= 1.15);
 
   // =========================================================================
   // RULE 1: HOOK (0-3s Window)
@@ -61,14 +70,58 @@ export function decideSceneMotion(
   }
 
   // =========================================================================
-  // RULE 2: CALL TO ACTION (CTA / Closing)
+  // RULE 2: MOTION COOLDOWN AFTER HIGH PUNCH / AGGRESSIVE SHOT
+  // Prevents viewer motion sickness: after an aggressive punch, provide natural breathing room
+  // =========================================================================
+  if (previousWasAggressive && index > 0 && role !== 'cta' && index !== totalScenes - 1) {
+    const cooldownMotion: MotionPreset = 'normal';
+    return {
+      motion: cooldownMotion,
+      motion_scale: 1.0,
+      transition: 'cut',
+      sound_effect: 'none',
+      camera_dynamics: {
+        zoomSpeed: 'linear',
+        intensity: 'subtle',
+        focalPoint: 'speaker_eyes',
+      },
+      cooldownApplied: true,
+      isStaticFraming: true,
+      directorNote: 'Motion Cooldown: Resting static camera framing after punch shot to maintain human visual comfort.',
+    };
+  }
+
+  // =========================================================================
+  // RULE 3: VISUAL LAYER ACTIVE (B-roll, Data Card, UI Overlay)
+  // When high-density visual evidence is displayed, keep camera steady
+  // =========================================================================
+  if (hasVisualLayerActive) {
+    const visualSteadyMotion: MotionPreset = previousMotion === 'normal' ? 'slow_zoom_in' : 'normal';
+    const visualScale = visualSteadyMotion === 'normal' ? 1.0 : 1.04;
+    return {
+      motion: visualSteadyMotion,
+      motion_scale: visualScale,
+      transition: 'cut',
+      sound_effect: 'none',
+      camera_dynamics: {
+        zoomSpeed: 'linear',
+        intensity: 'subtle',
+        focalPoint: 'center',
+      },
+      isStaticFraming: visualSteadyMotion === 'normal',
+      directorNote: 'Visual Evidence Context: Stable camera grounding spotlighting active visual overlay and preventing motion collision.',
+    };
+  }
+
+  // =========================================================================
+  // RULE 4: CALL TO ACTION (CTA / Closing)
   // Direct, decisive closing re-frame without mechanical repetition
   // =========================================================================
   if (index === totalScenes - 1 || role === 'cta') {
     if (previousMotion === 'punch_zoom') {
       return {
         motion: 'slow_zoom_in',
-        motion_scale: 1.14,
+        motion_scale: 1.12,
         transition: 'zoom_cut',
         sound_effect: isCleanCreator ? 'none' : 'ding',
         camera_dynamics: {
@@ -80,7 +133,7 @@ export function decideSceneMotion(
       };
     }
 
-    const ctaScale = isFastTikTok ? 1.20 : 1.15;
+    const ctaScale = isFastTikTok ? 1.18 : 1.14;
     return {
       motion: 'punch_zoom',
       motion_scale: ctaScale,
@@ -96,14 +149,34 @@ export function decideSceneMotion(
   }
 
   // =========================================================================
-  // RULE 3: CALM / EDUCATIONAL / STORYTELLING CONTEXT
+  // RULE 5: LOW EDITING INTENSITY / CALM EXPLANATION / BACKGROUND STORY
+  // Natural static camera shot to let the content breathe (target 30-50% active motion)
+  // =========================================================================
+  if (editingIntensity === 'LOW' || (role === 'explanation' && !isUrgent && !hasNumbersOrMetrics && index % 2 === 1)) {
+    return {
+      motion: 'normal',
+      motion_scale: 1.0,
+      transition: 'cut',
+      sound_effect: 'none',
+      camera_dynamics: {
+        zoomSpeed: 'linear',
+        intensity: 'subtle',
+        focalPoint: 'speaker_eyes',
+      },
+      isStaticFraming: true,
+      directorNote: 'Natural Breathing Room: Crisp static camera framing preserving direct speaker authenticity without over-editing.',
+    };
+  }
+
+  // =========================================================================
+  // RULE 6: CALM / EDUCATIONAL / STORYTELLING CONTEXT
   // Smooth, subtle motion to avoid mechanical feel or visual fatigue
   // =========================================================================
   if (isCalmEducational && (role === 'explanation' || role === 'solution')) {
-    const motionChoice: MotionPreset = previousMotion === 'slow_zoom_in' ? 'pan_right' : 'slow_zoom_in';
+    const motionChoice: MotionPreset = previousMotion === 'slow_zoom_in' ? 'normal' : 'slow_zoom_in';
     return {
       motion: motionChoice,
-      motion_scale: 1.05,
+      motion_scale: motionChoice === 'normal' ? 1.0 : 1.05,
       transition: 'cut',
       sound_effect: 'none',
       camera_dynamics: {
@@ -111,12 +184,13 @@ export function decideSceneMotion(
         intensity: 'subtle',
         focalPoint: 'speaker_eyes',
       },
-      directorNote: `Contextual Calm Flow (${style.toUpperCase()}): Smooth 1.05x ${motionChoice} maintains natural human speaker cadence.`,
+      isStaticFraming: motionChoice === 'normal',
+      directorNote: `Contextual Calm Flow (${style.toUpperCase()}): ${motionChoice === 'normal' ? '1.0x static natural' : 'Smooth 1.05x subtle zoom'} maintains human speaker cadence.`,
     };
   }
 
   // =========================================================================
-  // RULE 4: QUESTION / CURIOSITY CONTEXT
+  // RULE 7: QUESTION / CURIOSITY CONTEXT
   // Reframing pan to match inquisitive speech tone
   // =========================================================================
   if (isQuestion || role === 'curiosity') {
@@ -136,14 +210,14 @@ export function decideSceneMotion(
   }
 
   // =========================================================================
-  // RULE 5: PROOF & METRICS / NUMBERS IN SPEECH
+  // RULE 8: PROOF & METRICS / NUMBERS IN SPEECH
   // Steady framing tailored for reading numbers and verified proof
   // =========================================================================
   if (hasNumbersOrMetrics || role === 'proof' || scores.proof_strength >= 7) {
-    const proofMotion: MotionPreset = previousMotion === 'pan_right' ? 'pan_left' : 'slow_zoom_in';
+    const proofMotion: MotionPreset = previousMotion === 'slow_zoom_in' ? 'pan_left' : 'slow_zoom_in';
     return {
       motion: proofMotion,
-      motion_scale: 1.07,
+      motion_scale: 1.06,
       transition: isFastTikTok ? 'whip_pan' : 'cut',
       sound_effect: isCleanCreator ? 'none' : 'ding',
       camera_dynamics: {
@@ -156,11 +230,11 @@ export function decideSceneMotion(
   }
 
   // =========================================================================
-  // RULE 6: PROBLEM / PAIN AGITATION
+  // RULE 9: PROBLEM / PAIN AGITATION
   // Controlled push-in to build emotional gravity
   // =========================================================================
   if (role === 'problem' || isUrgent) {
-    const problemScale = isUrgent ? 1.14 : 1.10;
+    const problemScale = isUrgent ? 1.12 : 1.08;
     return {
       motion: 'slow_zoom_in',
       motion_scale: problemScale,
@@ -176,13 +250,13 @@ export function decideSceneMotion(
   }
 
   // =========================================================================
-  // RULE 7: SOLUTION / BREAKTHROUGH
+  // RULE 10: SOLUTION / BREAKTHROUGH
   // Zoom-out relief to signify resolution
   // =========================================================================
   if (role === 'solution') {
     return {
       motion: 'slow_zoom_out',
-      motion_scale: 1.08,
+      motion_scale: 1.07,
       transition: isFastTikTok ? 'zoom_cut' : 'cut',
       sound_effect: isCleanCreator ? 'none' : 'pop',
       camera_dynamics: {
@@ -195,16 +269,16 @@ export function decideSceneMotion(
   }
 
   // =========================================================================
-  // RULE 8: HUMANIZED DYNAMICS & PREVENT PRESET REPETITION
-  // Alternates camera movement gracefully to eliminate template feel
+  // RULE 11: HUMANIZED DYNAMICS & PREVENT PRESET REPETITION
+  // Includes 'normal' in available motions to balance pacing naturally
   // =========================================================================
-  const availableMotions: MotionPreset[] = ['slow_zoom_in', 'pan_left', 'pan_right', 'slow_zoom_out'];
+  const availableMotions: MotionPreset[] = ['normal', 'slow_zoom_in', 'pan_left', 'pan_right', 'slow_zoom_out'];
   const filtered = availableMotions.filter(m => m !== previousMotion);
-  const selectedMotion = filtered[index % filtered.length] || 'slow_zoom_in';
+  const selectedMotion = filtered[index % filtered.length] || 'normal';
 
   return {
     motion: selectedMotion,
-    motion_scale: isFastTikTok ? 1.10 : 1.06,
+    motion_scale: selectedMotion === 'normal' ? 1.0 : isFastTikTok ? 1.08 : 1.05,
     transition: 'cut',
     sound_effect: 'none',
     camera_dynamics: {
@@ -212,6 +286,7 @@ export function decideSceneMotion(
       intensity: 'subtle',
       focalPoint: 'center',
     },
-    directorNote: `Natural Editing Flow: Humanized camera movement (${selectedMotion}) keeps video rhythm fresh without formulaic presets.`,
+    isStaticFraming: selectedMotion === 'normal',
+    directorNote: `Natural Editing Flow: Humanized camera pacing (${selectedMotion}) keeps video rhythm fresh and prevents over-editing.`,
   };
 }

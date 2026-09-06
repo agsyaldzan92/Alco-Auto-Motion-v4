@@ -182,6 +182,7 @@ export interface SceneIntelligenceScore {
   cta_pressure: number;        // 1 - 10
   curiosity_tension?: number;  // 1 - 10
   problem_agitation?: number;  // 1 - 10
+  importance?: number;         // 1 - 10
   visual_fatigue_risk: number; // 0 - 100
   pacing_need: 'rapid' | 'moderate' | 'dramatic_pause' | 'punchy';
   marketing_role?: ContentRole;
@@ -277,6 +278,8 @@ export interface EditingRhythm {
   };
   description: string;
 }
+
+export type EditingIntensity = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export type AdRole =
   | 'hook'
@@ -386,6 +389,11 @@ export interface SceneEditPlan {
   brollSkippedReason?: string;
   brollRandomAssetBlocked?: boolean;
   editingRationale?: string;
+  // Step 9.1 Editing Quality & Natural Pacing fields
+  editing_intensity?: EditingIntensity;
+  visual_complexity_score?: number;
+  motion_cooldown_applied?: boolean;
+  effects_budget?: { maxEffects: number; activeEffects: string[]; simplified: boolean };
 }
 
 export interface StylePresetProfile {

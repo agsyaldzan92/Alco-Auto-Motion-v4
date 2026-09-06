@@ -67,14 +67,31 @@ export function classifyMarketingToken(word: string, sceneRole?: ContentRole): M
 }
 
 /**
- * Optimizes and extracts the top 1-3 power highlight words
+ * Optimizes and extracts the top 1-3 power highlight words (Step 9.1 Quality Improvement)
+ * Strictly caps at 1-3 words, eliminates stopwords, and does NOT force random highlights on calm/neutral scenes.
  */
-export function extractPowerHighlightWords(text: string, maxWords: number = 2): string[] {
+export function extractPowerHighlightWords(
+  text: string,
+  maxWords: number = 2,
+  intensity?: 'LOW' | 'MEDIUM' | 'HIGH'
+): string[] {
   const cleaned = text.replace(/[^a-zA-Z0-9%\s]/g, ' ');
   const words = cleaned
     .split(/\s+/)
     .map((w) => w.trim().toUpperCase())
     .filter((w) => w.length >= 2);
+
+  if (words.length === 0) return [];
+
+  // Low intensity scenes prefer clean subtitle reading without distracting colorful highlights
+  if (intensity === 'LOW') {
+    const highValueOnly = words.filter(
+      (w) =>
+        !STOPWORDS.has(w) &&
+        (PROBLEM_WORDS.has(w) || BENEFIT_RESULT_WORDS.has(w) || OFFER_MECHANISM_WORDS.has(w) || URGENCY_CTA_WORDS.has(w) || /\d+|%|X/i.test(w))
+    );
+    return highValueOnly.slice(0, 1);
+  }
 
   // Score candidate words
   const scoredWords = words.map((w, index) => {
@@ -91,12 +108,13 @@ export function extractPowerHighlightWords(text: string, maxWords: number = 2): 
   });
 
   const topCandidates = scoredWords
-    .filter((item) => item.score > 0)
+    .filter((item) => item.score >= 40) // Only words with genuine power weight
     .sort((a, b) => b.score - a.score)
-    .slice(0, maxWords)
+    .slice(0, Math.min(3, Math.max(1, maxWords)))
     .map((item) => item.word);
 
-  return topCandidates.length > 0 ? topCandidates : [words[0] || 'KONTEN'];
+  // If no strong marketing/power keyword exists, return empty array (clean natural caption)
+  return topCandidates;
 }
 
 /**
