@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=ALCO Auto Motion
-Exec=react-example %U
-Terminal=false
-Type=Application
-Icon=${SNAP}/meta/gui/icon.png
-StartupWMClass=ALCO Auto Motion
-Comment=ALCO Auto Motion - AI Video Editing Director & Motion Engine
-Categories=Utility;

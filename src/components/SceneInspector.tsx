@@ -375,20 +375,6 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
             <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${activeRoleObj.color}`}>
               {activeRoleObj.label}
             </span>
-            {scene.editing_intensity && (
-              <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${
-                scene.editing_intensity === 'HIGH' ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' :
-                scene.editing_intensity === 'LOW' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
-                'bg-blue-500/10 text-blue-400 border-blue-500/30'
-              }`}>
-                {scene.editing_intensity} Intensity
-              </span>
-            )}
-            {scene.motion_cooldown_applied && (
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                Pacing Cooldown
-              </span>
-            )}
           </div>
           <p className="text-[var(--muted-foreground)] leading-relaxed text-[11px]">
             {scene.director_note ||
