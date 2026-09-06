@@ -2,40 +2,51 @@ import { CaptionMode, CaptionPreset, WordTiming, MarketingCategory, ContentRole,
 
 // Stopwords in Indonesian and English that should NEVER be highlighted
 const STOPWORDS = new Set([
+  // Indonesian common words & particles without marketing/semantic power
   'YANG', 'DAN', 'DI', 'KE', 'DARI', 'INI', 'ITU', 'DENGAN', 'UNTUK', 'PADA', 'ADALAH',
   'SEBAGAI', 'KARENA', 'JIKA', 'KALAU', 'MAKA', 'BISA', 'AKAN', 'SUDAH', 'TELAH',
   'SAYA', 'KAMU', 'MEREKA', 'KITA', 'KAMI', 'DIA', 'KAU', 'MU', 'NYA', 'KU',
+  'ATAU', 'SAAT', 'JUGA', 'BAHWA', 'TAPI', 'LAGI', 'BIAR', 'AGAR', 'PUN', 'KOK',
+  'SIH', 'DONG', 'NIH', 'TUH', 'YA', 'YAH', 'ADA', 'OLEH', 'SAMPAI', 'TENTANG',
+  'SEPERTI', 'KEMUDIAN', 'LALU', 'HANYA', 'CUMA', 'SIAPA', 'APA', 'KAPAN', 'KENAPA',
+  'MENGAPA', 'BAGAIMANA', 'NAH', 'JADI', 'BIASA', 'BIASANYA', 'HAL', 'ORANG',
+  // English stopwords
   'THE', 'AND', 'OR', 'BUT', 'IF', 'BECAUSE', 'AS', 'AT', 'BY', 'FOR', 'WITH',
   'ABOUT', 'AGAINST', 'BETWEEN', 'INTO', 'THROUGH', 'DURING', 'BEFORE', 'AFTER',
   'ABOVE', 'BELOW', 'TO', 'FROM', 'UP', 'DOWN', 'IN', 'OUT', 'ON', 'OFF', 'OVER',
   'UNDER', 'AGAIN', 'FURTHER', 'THEN', 'ONCE', 'HERE', 'THERE', 'WHEN', 'WHERE',
   'WHY', 'HOW', 'ALL', 'ANY', 'BOTH', 'EACH', 'FEW', 'MORE', 'MOST', 'OTHER',
   'SOME', 'SUCH', 'NO', 'NOR', 'NOT', 'ONLY', 'OWN', 'SAME', 'SO', 'THAN',
-  'TOO', 'VERY', 'S', 'T', 'CAN', 'WILL', 'JUST', 'DON', 'SHOULD', 'NOW'
+  'TOO', 'VERY', 'S', 'T', 'CAN', 'WILL', 'JUST', 'DON', 'DOES', 'DID', 'SHOULD', 'NOW',
+  'IS', 'ARE', 'WAS', 'WERE', 'BE', 'BEEN', 'BEING'
 ]);
 
 // Semantic category maps for high-performance visual anchors in marketing short videos
 const PROBLEM_WORDS = new Set([
   'JANGAN', 'STOP', 'SALAH', 'FATAL', 'BUANG', 'BAKAR', 'RUGI', 'BONCOS', 'PUSING',
   'STUCK', 'GAGAL', 'SUSAH', 'LELAH', 'RIBET', 'LAMA', 'HANCUR', 'MISTAKE', "DON'T", 'NEVER',
-  'JELEK', 'DULU', 'SUSAHNYA', 'MAHAL', 'DROP'
+  'JELEK', 'DULU', 'SUSAHNYA', 'MAHAL', 'DROP', 'DROPNYA'
 ]);
 
 const BENEFIT_RESULT_WORDS = new Set([
   'ROAS', '5X', '10X', '2X', '3X', '90%', '100%', 'OMSET', 'JUTA', 'RIBU', 'MELESAT',
   'HASIL', 'BUKTI', 'CLOSING', 'PROFIT', 'BERHASIL', 'WIN', 'TEMBUS', 'CONVERSION',
-  'NAIK', 'UNTUNG', 'MELEJIOT', 'LAKU', 'AUTO'
+  'NAIK', 'UNTUNG', 'MELEJIT', 'LAKU', 'AUTO', 'SUKSES'
 ]);
 
 const OFFER_MECHANISM_WORDS = new Set([
   'RAHASIA', 'VALIDASI', 'RISET', 'PRODUK', 'MODUL', 'OFFER', 'SOLUSINYA', 'SOLUSI', 'TEMPLATE',
   'BLUEPRINT', 'FRAMEWORK', 'KUNCINYA', 'TERNYATA', 'METODE', 'RUMUS', 'SISTEM', 'ALCO',
-  'FORMULA', 'OTOMATIS', 'PRAKTIS', 'KILAT', 'TRIK'
+  'FORMULA', 'OTOMATIS', 'PRAKTIS', 'KILAT', 'TRIK', 'RAPI', 'HEMAT', 'CEPAT', 'MUDAH'
 ]);
 
 const URGENCY_CTA_WORDS = new Set([
-  'KLIK', 'LINK', 'BIO', 'KERANJANG', 'KUNING', 'DISKON', '40%', '50%', 'GRATIS', 'BURUAN',
+  'KLIK', 'LINK', 'BIO', 'KERANJANG', 'KUNING', 'DISKON', 'GRATIS', 'BURUAN',
   'CEPAT', 'KILAT', 'SEKARANG', 'DAFTAR', 'CHECKOUT', 'NOW', 'AMANKAN', 'GABUNG', 'PAKAI', 'AMBIL'
+]);
+
+const METRIC_UNIT_WORDS = new Set([
+  'PERSEN', '%', 'JUTA', 'RIBU', 'MILYAR', 'JT', 'RB', 'KALI', 'X', 'LIPAT', 'K', 'M', 'B'
 ]);
 
 /**
@@ -67,54 +78,153 @@ export function classifyMarketingToken(word: string, sceneRole?: ContentRole): M
 }
 
 /**
- * Optimizes and extracts the top 1-3 power highlight words (Step 9.1 Quality Improvement)
- * Strictly caps at 1-3 words, eliminates stopwords, and does NOT force random highlights on calm/neutral scenes.
+ * Step 9.2: Semantic Power Highlight Word Selection & Density Control
+ * Prioritizes numbers, nominals, percentages, metrics, results, benefits, pain points, urgency, CTA.
+ * Eliminates stopwords and common low-information words.
+ *
+ * Example:
+ * "Omset naik 37 persen" -> Highlight ideal: "37 persen" (Bukan: "Omset naik")
+ *
+ * Density rules:
+ * - LOW intensity: clean verbatim caption, minimal emphasis (0, or max 1 if concrete metric/number exists).
+ * - MEDIUM intensity: max 1 emphasis if truly relevant (score >= 55).
+ * - HIGH intensity: 1-3 power words (max 3), preserving transcript word order.
  */
 export function extractPowerHighlightWords(
   text: string,
   maxWords: number = 2,
-  intensity?: 'LOW' | 'MEDIUM' | 'HIGH'
+  intensity?: 'LOW' | 'MEDIUM' | 'HIGH',
+  speechWordsPerSec?: number
 ): string[] {
-  const cleaned = text.replace(/[^a-zA-Z0-9%\s]/g, ' ');
-  const words = cleaned
+  const cleaned = (text || '').replace(/[^a-zA-Z0-9%\s]/g, ' ');
+  const rawWords = cleaned
     .split(/\s+/)
-    .map((w) => w.trim().toUpperCase())
-    .filter((w) => w.length >= 2);
+    .map((w) => w.trim())
+    .filter((w) => w.length >= 1);
 
-  if (words.length === 0) return [];
+  if (rawWords.length === 0) return [];
 
-  // Low intensity scenes prefer clean subtitle reading without distracting colorful highlights
-  if (intensity === 'LOW') {
-    const highValueOnly = words.filter(
-      (w) =>
-        !STOPWORDS.has(w) &&
-        (PROBLEM_WORDS.has(w) || BENEFIT_RESULT_WORDS.has(w) || OFFER_MECHANISM_WORDS.has(w) || URGENCY_CTA_WORDS.has(w) || /\d+|%|X/i.test(w))
-    );
-    return highValueOnly.slice(0, 1);
+  const upperWords = rawWords.map((w) => w.toUpperCase());
+
+  // 1. Semantic Scoring Pass with Compound-Metric Detection
+  const scores: number[] = new Array(upperWords.length).fill(0);
+
+  for (let i = 0; i < upperWords.length; i++) {
+    const w = upperWords[i];
+    const isStopword = STOPWORDS.has(w);
+
+    if (isStopword) {
+      scores[i] = -999;
+      continue;
+    }
+
+    const isDirectNumber = /^\d+([.,]\d+)?%?$/.test(w) || /^\d+X$/i.test(w) || /^RP\d+/i.test(w) || /^\$\d+/i.test(w) || /^\d+JT$/i.test(w) || /^\d+RB$/i.test(w);
+    const nextWord = upperWords[i + 1] || '';
+    const prevWord = upperWords[i - 1] || '';
+
+    // Check for number + unit compound (e.g. "37 persen", "100 juta", "5x lipat", "rp 500 ribu")
+    const isNumberFollowedByUnit = /^\d+([.,]\d+)?$/.test(w) && METRIC_UNIT_WORDS.has(nextWord);
+    const isUnitPrecededByNumber = METRIC_UNIT_WORDS.has(w) && /^\d+([.,]\d+)?$/.test(prevWord);
+
+    if (isNumberFollowedByUnit) {
+      scores[i] = 110; // Number in compound gets highest priority
+      continue;
+    }
+    if (isUnitPrecededByNumber) {
+      scores[i] = 105; // Unit in compound gets near-highest priority
+      continue;
+    }
+
+    if (isDirectNumber) {
+      scores[i] = 100;
+      continue;
+    }
+
+    // Check compound CTA (e.g. "KLIK LINK", "KERANJANG KUNING")
+    if (w === 'KLIK' && nextWord === 'LINK') {
+      scores[i] = 85;
+      continue;
+    }
+    if (w === 'LINK' && prevWord === 'KLIK') {
+      scores[i] = 80;
+      continue;
+    }
+
+    // Specific marketing semantic categories
+    if (BENEFIT_RESULT_WORDS.has(w)) {
+      scores[i] = 70;
+    } else if (PROBLEM_WORDS.has(w)) {
+      scores[i] = 68;
+    } else if (OFFER_MECHANISM_WORDS.has(w)) {
+      scores[i] = 65;
+    } else if (URGENCY_CTA_WORDS.has(w)) {
+      scores[i] = 62;
+    } else if (METRIC_UNIT_WORDS.has(w)) {
+      scores[i] = 50;
+    } else if (w.length >= 4 && !STOPWORDS.has(w)) {
+      scores[i] = 20; // Generic word without verified semantic weight
+    } else {
+      scores[i] = 0;
+    }
   }
 
-  // Score candidate words
-  const scoredWords = words.map((w, index) => {
-    let score = 0;
-    if (PROBLEM_WORDS.has(w) || BENEFIT_RESULT_WORDS.has(w) || OFFER_MECHANISM_WORDS.has(w) || URGENCY_CTA_WORDS.has(w)) {
-      score += 50;
+  // 2. Density & Intensity Quota Pass
+  const targetIntensity = intensity || 'MEDIUM';
+
+  // In dense speech (> 3.0 words/sec), decrease max emphasis to prevent visual flutter
+  let effectiveMaxWords = Math.min(3, Math.max(1, maxWords));
+  if (typeof speechWordsPerSec === 'number' && speechWordsPerSec > 3.0 && effectiveMaxWords > 1) {
+    effectiveMaxWords = Math.max(1, effectiveMaxWords - 1);
+  }
+
+  // LOW intensity: Clean verbatim caption default
+  // Only allow highlight if there's a concrete metric/number (score >= 90)
+  if (targetIntensity === 'LOW') {
+    const metricIndices: number[] = [];
+    scores.forEach((sc, idx) => {
+      if (sc >= 90) metricIndices.push(idx);
+    });
+
+    if (metricIndices.length === 0) return [];
+    // Allow at most 1 power word / unit
+    return [rawWords[metricIndices[0]]];
+  }
+
+  // MEDIUM intensity: Max 1 emphasis (or adjacent compound pair like "37 persen") if score >= 55
+  if (targetIntensity === 'MEDIUM') {
+    const candidateIndices = scores
+      .map((sc, idx) => ({ sc, idx }))
+      .filter((item) => item.sc >= 55)
+      .sort((a, b) => b.sc - a.sc);
+
+    if (candidateIndices.length === 0) return [];
+
+    const topIdx = candidateIndices[0].idx;
+    const selectedIndices = [topIdx];
+
+    // If part of compound metric (e.g. "37" + "persen"), include the paired unit
+    if (scores[topIdx] === 110 && scores[topIdx + 1] === 105) {
+      selectedIndices.push(topIdx + 1);
+    } else if (scores[topIdx] === 105 && scores[topIdx - 1] === 110) {
+      selectedIndices.unshift(topIdx - 1);
     }
-    if (/\d+|%|X/i.test(w)) score += 40;
-    if (!STOPWORDS.has(w) && w.length >= 4) score += 20;
-    if (index === 0 || index === words.length - 1) score += 5;
-    if (STOPWORDS.has(w)) score = -100;
 
-    return { word: w, score };
-  });
+    return selectedIndices.map((idx) => rawWords[idx]);
+  }
 
-  const topCandidates = scoredWords
-    .filter((item) => item.score >= 40) // Only words with genuine power weight
-    .sort((a, b) => b.score - a.score)
-    .slice(0, Math.min(3, Math.max(1, maxWords)))
-    .map((item) => item.word);
+  // HIGH intensity: 1-3 power words with score >= 45
+  const candidateIndices = scores
+    .map((sc, idx) => ({ sc, idx }))
+    .filter((item) => item.sc >= 45)
+    .sort((a, b) => b.sc - a.sc)
+    .slice(0, effectiveMaxWords)
+    .map((item) => item.idx);
 
-  // If no strong marketing/power keyword exists, return empty array (clean natural caption)
-  return topCandidates;
+  if (candidateIndices.length === 0) return [];
+
+  // Sort selected indices in order of sentence appearance
+  candidateIndices.sort((a, b) => a - b);
+  return candidateIndices.map((idx) => rawWords[idx]);
 }
 
 /**

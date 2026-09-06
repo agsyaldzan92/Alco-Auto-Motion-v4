@@ -394,6 +394,10 @@ export interface SceneEditPlan {
   visual_complexity_score?: number;
   motion_cooldown_applied?: boolean;
   effects_budget?: { maxEffects: number; activeEffects: string[]; simplified: boolean };
+  // Step 9.2 Caption & Typography Intelligence fields
+  caption_adaptive_position?: 'LOWER' | 'CENTER-LOW' | 'UPPER-LOW';
+  caption_font_size_pt?: number;
+  caption_density_status?: 'clean_minimal' | 'selective_emphasis' | 'power_highlight';
 }
 
 export interface StylePresetProfile {
